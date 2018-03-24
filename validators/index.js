@@ -124,20 +124,6 @@ class Validator {
 		return msg;
 	}
 
-	messageHasDuplicateVotes(msg) {
-		const senders = {};
-		let hasDupes = false;
-		msg.justification.forEach(j => {
-			hasDupes = (hasDupes 
-				|| senders[j.sender] 
-				|| this.messageHasDuplicateVotes(j));
-			senders[j.sender] = true;
-		});
-		if(hasDupes) { return true; }
-		
-		return false;
-	}
-
 	getMessageSequence(who) {
 		return this.messageSequences[who] ? this.messageSequences[who] : []
 	}
@@ -151,16 +137,28 @@ class Validator {
 	}
 
 	verifyMessage(msg) {
-		if(this.messageHasDuplicateVotes(msg)) {
+		const table = {};
+		const msgHash = this.addToHashTable(msg, table);
+		
+		/*
+		 * Inspect the immediate justification messages
+		 * and detect wether or not there are multiple messages
+		 * from the same sender. If so, flag the sender of this
+		 * message as Byzantine.
+		 */
+		const senders = {};
+		let hasDupes = false;
+		msg.justification.forEach(j => {
+			hasDupes = (hasDupes || senders[j.sender]);
+			senders[j.sender] = true;
+		});
+		if(hasDupes) { 
 			this.flagAsByzantine(msg.sender);
 			throw new ByzantineError(
 				"There were multiple messages from the same sender in " +
 				"the justification of the message."
 			);
 		}
-
-		const table = {};
-		const msgHash = this.addToHashTable(msg, table);
 
 		/*
 		 * For each sender, build a linear history of messages, as defined
