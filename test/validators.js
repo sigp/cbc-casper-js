@@ -287,7 +287,7 @@ describe('Validator message processing', function() {
 	
 	it('should flag a sender as byzantine if they send a message ' +
 		'which has multiple messages from the same sender in the ' +
-		'justification (recursive).', function() {
+		'justification (when deep in messages).', function() {
 		const msg1 = {
 			sender: 'Brian',
 			estimate: 1,
@@ -340,6 +340,124 @@ describe('Validator message processing', function() {
 			'the message was invalid and should not have become ' + 
 			'the latest messsage.'
 		);
+	});
+	
+	it('should flag a sender as byzantine if they fork their history', function() {
+		const msg1 = {
+			sender: 'Brian',
+			estimate: 0,
+			justification: [
+				{
+					sender: 'Fred',
+					estimate: 0,
+					justification: [],
+				},
+				{
+					sender: 'Brian',
+					estimate: 0,
+					justification: [
+						{
+							sender: 'Eddy',
+							estimate: 0,
+							justification: [],
+						},
+						{
+							sender: 'Brian',
+							estimate: 0,
+							justification: [
+								{
+									sender: 'Donna',
+									estimate: 0,
+									justification: [],
+								},
+								{
+									sender: 'Brian',
+									estimate: 0,
+									justification: [
+										{
+											sender: 'Brian',
+											estimate: 0,
+											justification: [],
+										},
+										{
+											sender: 'Sally',
+											estimate: 0,
+											justification: [],
+										}
+									]
+								},
+							]
+						},
+					]
+				}
+			]
+		};
+		const msg2 = {
+			sender: 'Brian',
+			estimate: 0,
+			justification: [
+				{
+					sender: 'Fred',
+					estimate: 0,
+					justification: [],
+				},
+				{
+					sender: 'Brian',
+					estimate: 0,
+					justification: [
+						{
+							sender: 'Xena', // <--- This is an equivocation
+							estimate: 0,
+							justification: [],
+						},
+						{
+							sender: 'Brian',
+							estimate: 0,
+							justification: [
+								{
+									sender: 'Donna',
+									estimate: 0,
+									justification: [],
+								},
+								{
+									sender: 'Brian',
+									estimate: 0,
+									justification: [
+										{
+											sender: 'Brian',
+											estimate: 0,
+											justification: [],
+										},
+										{
+											sender: 'Sally',
+											estimate: 0,
+											justification: [],
+										}
+									]
+								},
+							]
+						},
+					]
+				}
+			]
+		};
+		let v = new Validator('Test', 0, 0);
+		// parse the first message
+		v.parseMessage(msg1);
+		assert.equal(
+			v.lastMsgHashFrom('Brian'),
+			v.addToHashTable(msg1, {}), 
+			'the sent message should be the latest messsage.'
+		);
+		// parse the second message
+		const err = v.parseMessage(msg2);
+		assert.equal(
+			v.lastMsgHashFrom('Brian'),
+			v.addToHashTable(msg1, {}), 
+			'the message was invalid and should not become the latest message.'
+		);
+		// brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'brian should be Byzantine')
 	});
 
 });
