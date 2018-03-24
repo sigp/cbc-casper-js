@@ -231,8 +231,8 @@ describe('Validator message processing', function() {
 			v.addToHashTable(msg1, {}), 
 			'the message was invalid and should not become the latest message.'
 		);
-		// brian should be flagged as Byzantine
-		assert(v.isByzantine['Brian'], 'brian should be Byzantine')
+		// Brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 	});
 	
 	it('should flag a sender as byzantine if they send a message ' +
@@ -258,7 +258,7 @@ describe('Validator message processing', function() {
 					justification: [],
 				},
 				{
-					sender: 'Brian', // <-- brian is double voting here
+					sender: 'Brian', // <-- Brian is double voting here
 					estimate: 1,
 					justification: [],
 				},
@@ -274,8 +274,8 @@ describe('Validator message processing', function() {
 		);
 		// parse the second message
 		v.parseMessage(msg2);
-		// brian should be flagged as Byzantine
-		assert(v.isByzantine['Brian'], 'brian should be Byzantine')
+		// Brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 		// the message should have been ignored
 		assert.equal(
 			v.lastMsgHashFrom('Brian'),
@@ -331,8 +331,8 @@ describe('Validator message processing', function() {
 		);
 		// parse the second message
 		v.parseMessage(msg2);
-		// brian should be flagged as Byzantine
-		assert(v.isByzantine['Brian'], 'brian should be Byzantine')
+		// Brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 		// the message should have been ignored
 		assert.equal(
 			v.lastMsgHashFrom('Brian'),
