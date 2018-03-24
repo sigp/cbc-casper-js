@@ -193,8 +193,53 @@ describe('Validator message processing', function() {
 			'the latest message should not have been updated.'
 		);
 	});
+});
+
+describe('Validator Byzantine detection', function() {
 	
-	it('should flag a sender as byzantine if they present a contradicting initial message', function() {
+	it('should flag a sender as Byzantine if they fail to provide ' + 
+		'one of thier own messages in their justification.', function() {
+		const msg1 = {
+			sender: 'Brian',
+			estimate: 1,
+			justification: [],
+		};
+		const msg2 = {
+			sender: 'Brian',
+			estimate: 0,
+			justification: [
+				{
+					sender: 'Zebra',
+					estimate: 0,		
+					justification: [],
+				},
+				{
+					sender: 'Sally',
+					estimate: 0,
+					justification: [],
+				}
+			],
+		};
+		let v = new Validator('Test', 0, 0);
+		// parse the first message
+		v.parseMessage(msg1);
+		assert.equal(
+			v.lastMsgHashFrom('Brian'),
+			v.addToHashTable(msg1, {}), 
+			'the sent message should be the latest messsage.'
+		);
+		// parse the second message
+		v.parseMessage(msg2);
+		assert.equal(
+			v.lastMsgHashFrom('Brian'),
+			v.addToHashTable(msg1, {}), 
+			'the message was invalid and should not become the latest message.'
+		);
+		// Brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
+	});
+	
+	it('should flag a sender as Byzantine if they present a contradicting initial message', function() {
 		const msg1 = {
 			sender: 'Brian',
 			estimate: 1,
@@ -235,7 +280,7 @@ describe('Validator message processing', function() {
 		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 	});
 	
-	it('should flag a sender as byzantine if they send a message ' +
+	it('should flag a sender as Byzantine if they send a message ' +
 		'which has multiple messages from the same sender in the ' +
 		'justification.', function() {
 		const msg1 = {
@@ -285,7 +330,7 @@ describe('Validator message processing', function() {
 		);
 	});
 	
-	it('should flag a sender as byzantine if they send a message ' +
+	it('should flag a sender as Byzantine if they send a message ' +
 		'which has multiple messages from the same sender in the ' +
 		'justification (when deep in messages).', function() {
 		const msg1 = {
@@ -316,7 +361,6 @@ describe('Validator message processing', function() {
 							estimate: 1,
 							justification: [],
 						},
-
 					],
 				},
 			],
@@ -342,7 +386,7 @@ describe('Validator message processing', function() {
 		);
 	});
 	
-	it('should flag a sender as byzantine if they fork their history', function() {
+	it('should flag a sender as Byzantine if they fork their history', function() {
 		const msg1 = {
 			sender: 'Brian',
 			estimate: 0,
@@ -460,7 +504,7 @@ describe('Validator message processing', function() {
 		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 	});
 	
-	it('should flag as byzantine if there is a fork in the history ' + 
+	it('should flag as Byzantine if there is a fork in the history ' + 
 		'of another sender.', function() {
 		const msg1 = {
 			sender: 'Graham',

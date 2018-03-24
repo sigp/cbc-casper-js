@@ -176,7 +176,7 @@ class Validator {
 					"from the justification."
 				)
 			}
-		}
+		}.bind(this);
 		makeSeqs(msgHash, msg.sender);
 		
 
