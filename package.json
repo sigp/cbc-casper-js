@@ -1,0 +1,27 @@
+{
+  "name": "cbc-casper-js",
+  "version": "0.0.1",
+  "description": "An implementation of Vlad Zamfir's Correct-by-Construction Casper",
+  "main": "main.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha",
+    "binary": "node binarySim.js"
+  },
+  "keywords": [
+    "Ethereum",
+    "Casper",
+    "The",
+    "Friendly",
+    "GHOST",
+    "Consensus"
+  ],
+  "author": "Paul Hauner",
+  "license": "MIT",
+  "dependencies": {
+    "mocha": "^5.0.4",
+    "object-hash": "^1.3.0"
+  }
+}
