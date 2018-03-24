@@ -7,36 +7,60 @@ const Validator = validators.Validator;
 describe('validator.getEstimate', function() {
 	it('should return 1 if all votes are 1', function() {
 		let v = new Validator('Test', 0, 0);
-		const msgs = [
-			{estimate: 1, weight: 100}, 
-			{estimate: 0, weight: 99},
-		]
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 1,
+			weight: 100,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 0,
+			weight: 99,
+			justification: []
+		});
 		assert(
-			v.getEstimate(msgs).estimate === 1, 
+			v.getEstimate().estimate === 1, 
 			"estimate should return 1"
 		);
 	});
 	
 	it('should return 0 with majority 0', function() {
 		let v = new Validator('Test', 0, 0);
-		const msgs = [
-			{estimate: 0, weight: 100}, 
-			{estimate: 1, weight: 99},
-		]
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 0,
+			weight: 100,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 1,
+			weight: 99,
+			justification: []
+		});
 		assert(
-			v.getEstimate(msgs).estimate === 0 , 
+			v.getEstimate().estimate === 0 , 
 			"estimate should return 0"
 		);
 	});
 	
 	it('should return 0 if votes are equal', function() {
 		let v = new Validator('Test', 0, 0);
-		const msgs = [
-			{estimate: 1, weight: 5}, 
-			{estimate: 0, weight: 5},
-		]
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 1,
+			weight: 5,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Brenda',
+			estimate: 0,
+			weight: 5,
+			justification: []
+		});
 		assert(
-			v.getEstimate(msgs).estimate === 0, 
+			v.getEstimate().estimate === 0, 
 			"estimate should return 0 "
 		);
 	});

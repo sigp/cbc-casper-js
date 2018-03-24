@@ -36,7 +36,10 @@ class Validator {
 		this.isByzantine[sender] = true;
 	}
 
-	getEstimate(msgs) {
+	getEstimate() {
+		const msgs = Object.keys(this.lastMsgHashes).map(m => {
+			return this.msgHashTable[this.lastMsgHashes[m]]
+		});
 		const totals = msgs.reduce((totals, msg) => {
 			totals[msg.estimate] += msg.weight;
 			return totals;
