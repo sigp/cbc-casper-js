@@ -37,12 +37,12 @@ class Validator {
 	}
 
 	getEstimate(msgs) {
-		// we're going to assume that all messages in the log are valid
-		// and we're not going recurse down into justifications.
 		const totals = msgs.reduce((totals, msg) => {
 			totals[msg.estimate] += msg.weight;
 			return totals;
 		}, [0, 0]);
+		const estimate = totals[1] > totals[0] ? 1 : 0;
+		const weight = (totals[0] + totals[1]) / totals[estimate];
 
 		/*
 		 * As per CasperTFG paper:
@@ -51,7 +51,10 @@ class Validator {
 		 * E(M) = 1 if Score(1, M) > Score(0, M)
 		 * E(M) = 0 if Score(1, M) = Score(0, M)
 		 */
-		return totals[1] > totals[0] ? 1 : 0;
+		return {
+			estimate,
+			weight
+		}
 	}
 
 	generateMessage() {
@@ -78,7 +81,7 @@ class Validator {
 		const msg = {
 			sender: this.name,
 			weight: this.weight,
-			estimate: this.getEstimate(latestMsgs),
+			estimate: this.getEstimate(latestMsgs).estimate,
 			justification: latestMsgs,
 		}
 		const msgHash = this.addToHashTable(msg, this.msgHashTable);

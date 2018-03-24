@@ -12,8 +12,9 @@ describe('validator.getEstimate', function() {
 			{estimate: 0, weight: 99},
 		]
 		assert(
-			v.getEstimate(msgs) === 1, 
-			"estimate should return 1");
+			v.getEstimate(msgs).estimate === 1, 
+			"estimate should return 1"
+		);
 	});
 	
 	it('should return 0 with majority 0', function() {
@@ -23,8 +24,9 @@ describe('validator.getEstimate', function() {
 			{estimate: 1, weight: 99},
 		]
 		assert(
-			v.getEstimate(msgs) === 0 , 
-			"estimate should return 0");
+			v.getEstimate(msgs).estimate === 0 , 
+			"estimate should return 0"
+		);
 	});
 	
 	it('should return 0 if votes are equal', function() {
@@ -34,8 +36,9 @@ describe('validator.getEstimate', function() {
 			{estimate: 0, weight: 5},
 		]
 		assert(
-			v.getEstimate(msgs) === 0, 
-			"estimate should return 0 ");
+			v.getEstimate(msgs).estimate === 0, 
+			"estimate should return 0 "
+		);
 	});
 });
 
