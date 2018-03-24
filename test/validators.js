@@ -456,8 +456,145 @@ describe('Validator message processing', function() {
 			v.addToHashTable(msg1, {}), 
 			'the message was invalid and should not become the latest message.'
 		);
-		// brian should be flagged as Byzantine
-		assert(v.isByzantine['Brian'], 'brian should be Byzantine')
+		// Brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
+	});
+	
+	it('should flag as byzantine if there is a fork in the history ' + 
+		'of another sender.', function() {
+		const msg1 = {
+			sender: 'Graham',
+			estimate: 0,
+			justification: [
+				{
+					sender: 'Graham',
+					estimate: 0,
+					justification: []
+				},
+				{
+					sender: 'Brian',
+					estimate: 0,
+					justification: [
+						{
+							sender: 'Fred',
+							estimate: 0,
+							justification: [],
+						},
+						{
+							sender: 'Brian',
+							estimate: 0,
+							justification: [
+								{
+									sender: 'Eddy',
+									estimate: 0,
+									justification: [],
+								},
+								{
+									sender: 'Brian',
+									estimate: 0,
+									justification: [
+										{
+											sender: 'Donna',
+											estimate: 0,
+											justification: [],
+										},
+										{
+											sender: 'Brian',
+											estimate: 0,
+											justification: [
+												{
+													sender: 'Brian',
+													estimate: 0,
+													justification: [],
+												},
+												{
+													sender: 'Sally',
+													estimate: 0,
+													justification: [],
+												}
+											]
+										},
+									]
+								},
+							]
+						}
+					]
+				}
+			]
+		};
+		const msg2 = {
+			sender: 'Graham',
+			estimate: 0,
+			justification: [
+				msg1,
+				{
+					sender: 'Brian',
+					estimate: 0,
+					justification: [
+						{
+							sender: 'Fred',
+							estimate: 0,
+							justification: [],
+						},
+						{
+							sender: 'Brian',
+							estimate: 0,
+							justification: [
+								{
+									sender: 'Zebra', // <--- This is an equivocation
+									estimate: 0,
+									justification: [],
+								},
+								{
+									sender: 'Brian',
+									estimate: 0,
+									justification: [
+										{
+											sender: 'Donna',
+											estimate: 0,
+											justification: [],
+										},
+										{
+											sender: 'Brian',
+											estimate: 0,
+											justification: [
+												{
+													sender: 'Brian',
+													estimate: 0,
+													justification: [],
+												},
+												{
+													sender: 'Sally',
+													estimate: 0,
+													justification: [],
+												}
+											]
+										},
+									]
+								},
+							]
+						}
+					]
+				}
+			]
+		};
+		let v = new Validator('Test', 0, 0);
+		// parse the first message
+		v.parseMessage(msg1);
+		assert.equal(
+			v.lastMsgHashFrom('Graham'),
+			v.addToHashTable(msg1, {}), 
+			'the sent message should be the latest messsage.'
+		);
+		// parse the second message
+		const err = v.parseMessage(msg2);
+		assert.equal(
+			v.lastMsgHashFrom('Graham'),
+			v.addToHashTable(msg1, {}), 
+			'the message was invalid and should not become the latest message.'
+		);
+		// Brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 	});
 
 });
