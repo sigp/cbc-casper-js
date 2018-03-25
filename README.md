@@ -113,7 +113,7 @@ Any validator which defies these rules will be flagged as Byzantine.
   - [x] Estimator
   - [x] Byzantine Fault Detection
   - [x] Safety Oracle
+  - [x] Command-line simulator
 - [ ] Integer Consensus
 - [ ] Blockchain Consensus
-- [ ] Simulate a network of validators working to reach consensus
 - [ ] Graphical simulation (to be implemented as a separate project)
