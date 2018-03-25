@@ -1,37 +1,27 @@
-var estimator = require("./binary");
-var utils = require("./binary/utils");
 var network = require("./network");
 var validators = require("./validators");
 
 const Validator = validators.Validator;
 const Network = network.Network;
 
-const messageItinery = function(validators) {
-	return validators.reduce((acc, from) => {
-		validators.forEach(to => {
-			if(utils.randomBool() && to !== from) {
-				acc.push([from, to]);
-			}
-		});
-		return acc;
-	}, []);
-}
-
-const buildInitialMessage = function(validator) {
-	return {
-		sender: validator.name,
-		estimate: validator.startingPoint,
-		justification: []
-	};
-}
-
 
 const rand = function() {
-	const validators = [
-		new Validator(name="Andy", weight=100, startingPoint=0),
-		new Validator(name="Brian", weight=100, startingPoint=0),
-		new Validator(name="Chris", weight=100, startingPoint=1),
+	const validatorInfo = [
+		{name="Andy", weight=100, startingPoint=0},
+		{name="Brenda", weight=100, startingPoint=0},
+		{name="Chris", weight=100, startingPoint=1},
 	]
+
+	const validators = validatorInfo.map(v => {
+		return new Validator(
+			name=v.name, 
+			weight=v.weight, 
+			startingPoint=v.startingPoint.
+		)
+	});
+
+	validators.forEach(v => v.learnValidators(validatorInfo));
+
 	let n = new Network(validators);
 
 	/*
