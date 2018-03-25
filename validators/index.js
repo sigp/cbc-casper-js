@@ -42,6 +42,12 @@ class Validator {
 		return this.weights[who] ? this.weights[who] : 0;
 	}
 
+	getWeightSum() {
+		return Object.keys(this.weights).reduce((acc, s) => {
+			return acc + this.weights[s]
+		}, 0);
+	}
+
 	flagAsByzantine(sender) {
 		this.isByzantine[sender] = true;
 	}
@@ -89,7 +95,7 @@ class Validator {
 			return totals;
 		}, [0, 0]);
 		const estimate = totals[1] > totals[0] ? 1 : 0;
-		const weight = (totals[0] + totals[1]) / totals[estimate];
+		const safety = totals[estimate] / this.getWeightSum();
 
 		/*
 		 * As per CasperTFG paper:
@@ -100,7 +106,7 @@ class Validator {
 		 */
 		return {
 			estimate,
-			weight
+			safety
 		}
 	}
 
