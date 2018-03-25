@@ -38,7 +38,7 @@ random.addArgument(
 	[ '-s', '--safety-ratio' ],
 	{
 		defaultValue: 0.5,
-		type: 'int',
+		type: 'float',
 		help: 'The safety ratio all validators must exceed before the sim ends.'
 	}
 );
