@@ -1,7 +1,7 @@
 var assert = require("assert");
 var network = require("../network");
 
-describe('network', function() {
+describe('Network', function() {
 
 	it('should create new Network instance', function() {
 		const validators = [
