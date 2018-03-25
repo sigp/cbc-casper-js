@@ -52,14 +52,19 @@ const rand = function(requiredSafetyRatio, messagesPerRound) {
 		doRound(messagesPerRound);
 		consensusAchieved = true;
 		validators.forEach(v => {
-			console.log(v.getEstimate().safety)
 			if(v.getEstimate().safety <= requiredSafetyRatio) {
 				consensusAchieved = false;
 			}
 		});
 	}
 
+	const decisions = validators.reduce((acc, v) => {
+		acc[v.name] = v.getEstimate();
+		return acc;
+	}, {})
+
 	const output = {
+		decisions,
 		log: n.getLog()
 	}
 
