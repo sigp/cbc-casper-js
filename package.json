@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha",
-    "binary": "node binarySim.js"
+    "binary": "node sims/binary.js"
   },
   "keywords": [
     "Ethereum",
