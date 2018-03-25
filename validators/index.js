@@ -36,6 +36,40 @@ class Validator {
 		this.isByzantine[sender] = true;
 	}
 
+	getMessageSequence(who) {
+		return this.messageSequences[who] ? this.messageSequences[who] : []
+	}
+	
+	setMessageSequence(who, seqs) {
+		this.messageSequences[who] = seqs;
+	}
+
+	isMessageKnown(hash) {
+		return this.msgHashTable[hash] !== undefined;
+	}
+
+	lastMsgHashFrom(who) {
+		return this.lastMsgHashes[who];
+	}
+
+	addToHashTable(msg, table) {
+		let hashedMsg = Object.assign({}, msg);
+		hashedMsg.justification = msg.justification.map(j => {
+			return this.addToHashTable(j, table)
+		});
+		const msgHash = hashObj(hashedMsg);
+		table[msgHash] = hashedMsg;
+		return msgHash;
+	}
+
+	decompressFromHashTable(hash, table) {
+		let msg = Object.assign({}, table[hash]);
+		msg.justification = msg.justification.map(j => {
+			return this.decompressFromHashTable(j, table);
+		});
+		return msg;
+	}
+
 	getEstimate() {
 		const msgs = Object.keys(this.lastMsgHashes).map(m => {
 			return this.msgHashTable[this.lastMsgHashes[m]]
@@ -92,53 +126,63 @@ class Validator {
 		return msg;
 	}
 
-	lastMsgHashFrom(who) {
-		return this.lastMsgHashes[who];
+	parseMessage(msg) {
+		try {
+			this.verifyAndStore(msg);
+		}	
+		catch(e) {
+			if(e.name !== "ByzantineError") {
+				throw e;
+			}
+			return e;
+		}
 	}
 
-	getDependencies(hash, table) {
-		const msg = table[hash];
-		const deps = msg.justification;
-		return msg.justification.reduce((acc, j) => {
-			acc = acc.concat(this.getDependencies(j, table));
-			return acc;
-		}, deps);
-		return deps;
-	}
+	verifyAndStore(msg) {
+		const table = {};
+		const msgHash = this.addToHashTable(msg, table);
 
-	addToHashTable(msg, table) {
-		let hashedMsg = Object.assign({}, msg);
-		hashedMsg.justification = msg.justification.map(j => {
-			return this.addToHashTable(j, table)
-		});
-		const msgHash = hashObj(hashedMsg);
-		table[msgHash] = hashedMsg;
-		return msgHash;
-	}
-
-	decompressFromHashTable(hash, table) {
-		let msg = Object.assign({}, table[hash]);
-		msg.justification = msg.justification.map(j => {
-			return this.decompressFromHashTable(j, table);
-		});
-		return msg;
-	}
-
-	getMessageSequence(who) {
-		return this.messageSequences[who] ? this.messageSequences[who] : []
+		const recurse = function(hash) {
+			table[hash].justification.forEach(h => recurse(h));
+			// If we don't already have this message, then attempt to verify
+			// and store it if it passes.
+			if(!this.isMessageKnown(hash)){
+				const isLatest = this.verifyMessage(
+					this.decompressFromHashTable(hash, table)
+				);
+				// We will proceed to the next line only if the above call didn't
+				// throw and the message is therefore valid.
+				this.msgHashTable[hash] = table[hash];
+				if (isLatest) {
+					this.lastMsgHashes[table[hash].sender] = hash;
+				}
+			}
+		}.bind(this);
+		recurse(msgHash);
 	}
 	
-	setMessageSequence(who, seqs) {
-		this.messageSequences[who] = seqs;
-	}
-
-	isMessageKnown(hash) {
-		return this.msgHashTable[hash] !== undefined;
-	}
-
+	/*
+	 * Take a message and perform checks to detect Byzantine
+	 * behavior. If Byzantine errors are detected, a BzyantineError
+	 * will be thrown.
+	 *
+	 * If a sender does any of the following, we consider them Byzantine:
+	 * 
+	 *  - Send a message which contains multiple justifications from
+	 *		the same sender. (i.e., double vote)
+	 *	- Fail to include a message from themselves in the justification
+	 *		of a message. (i.e., selectively exclude votes)
+	 *	- Provide messages which are "equivocations" (see CasperTFG paper).
+	 *		(i.e., provide two differing voting sequences)
+	 *	
+	 *	For convenience, return `true` if this message is the latest
+	 *	message for a particular sender.
+	 */
 	verifyMessage(msg) {
 		const table = {};
 		const msgHash = this.addToHashTable(msg, table);
+
+		// TODO: verify the estimate checks out
 		
 		/*
 		 * Inspect the immediate justification messages
@@ -194,7 +238,7 @@ class Validator {
 		// accept this sequence as the truth.
 		if(knownSeqs.length === 0) {
 			this.setMessageSequence(msg.sender, seqs);
-			return;
+			return true;	// Return true because this is the lastest message
 		}
 		const index = knownSeqs.indexOf(seqs[0]);
 		// If the very first message from a sender in this message history
@@ -209,6 +253,7 @@ class Validator {
 		}
 		// Start checking the two histories for a fork (and also extend our
 		// currently known sequence if there are no forks)
+		const isLatestMsg = (seqs.length + index > knownSeqs.length);
 		for(var i = 0; i < seqs.length; i++) {
 			const knownSeqsIndex = i + index;
 			if(knownSeqsIndex >= knownSeqs.length) {
@@ -219,89 +264,8 @@ class Validator {
 				throw new ByzantineError("There was a fork in the message history.")
 			}
 		}
-	}
 
-	verifyAndStore(msg) {
-		const table = {};
-		const msgHash = this.addToHashTable(msg, table);
-
-		const recurse = function(hash) {
-			table[hash].justification.forEach(h => recurse(h));
-			// If we don't already have this message, then attempt to verify
-			// and store it if it passes.
-			if(!this.isMessageKnown(hash)){
-				this.verifyMessage(this.decompressFromHashTable(hash, table));
-				// We will proceed to the next line only if the above call didn't
-				// throw and the message is therefore valid.
-				this.msgHashTable[hash] = table[hash];
-			}
-		}.bind(this);
-		recurse(msgHash);
-	}
-
-	parseMessage(msg) {
-		// TODO: check that the estimate of the message checks out
-		const table = {};
-		const storeMsg = () => Object.assign(this.msgHashTable, table);
-		const msgHash = this.addToHashTable(msg, table);
-		const latestMsgHash = this.lastMsgHashes[msg.sender];
-		
-		try {
-			//this.verifyMessage(msg);
-			this.verifyAndStore(msg);
-		}	
-		catch(e) {
-			if(e.name === "ByzantineError") {
-				this.flagAsByzantine(msg.sender);
-			} else {
-				throw e;
-			}
-			return e;
-		}
-
-		/*
-		 * If there were no previous latest messages, this is necessarily
-		 * the latest.
-		 */
-		if(latestMsgHash === undefined) {
-			storeMsg();
-			this.lastMsgHashes[msg.sender] = msgHash;
-			return;
-		} 
-
-		/*
-		 * If the current latest message is a dependency of the latest
-		 * message, then this new message should become the latest
-		 * message.
-		 */
-		const msgDeps = this.getDependencies(msgHash, table)
-		if(msgDeps.indexOf(latestMsgHash) >= 0) {
-			storeMsg();
-			this.lastMsgHashes[msg.sender] = msgHash;
-			return;
-		}
-
-		/*
-		 * If the new message is a dependency of the current latest 
-		 * message, then this is a repeated message
-		 */
-		const latestMsgDeps = this.getDependencies(
-			latestMsgHash, 
-			this.msgHashTable
-		);
-		if(latestMsgDeps.indexOf(msgHash) >= 0) {
-			// this is a repeat message. nothing to do.
-			return;
-		}
-
-		/*
-		 * If this is the same as the latest message, ignore it
-		 */
-		if(msgHash === this.lastMsgHashes[msg.sender]) {
-			return;
-		}
-
-		throw new Error("Reached an unexpected condition when parsing message.")
+		return isLatestMsg;
 	}
 }
 module.exports.Validator = Validator;
