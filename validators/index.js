@@ -95,7 +95,7 @@ class Validator {
 			return totals;
 		}, [0, 0]);
 		const estimate = totals[1] > totals[0] ? 1 : 0;
-		const weight = (totals[0] + totals[1]) / totals[estimate];
+		const safety = totals[estimate] / this.getWeightSum();
 
 		/*
 		 * As per CasperTFG paper:
@@ -106,7 +106,7 @@ class Validator {
 		 */
 		return {
 			estimate,
-			weight
+			safety
 		}
 	}
 

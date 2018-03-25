@@ -46,6 +46,82 @@ describe('Validator weighting', function() {
 			'The weight sum should be accurate'
 		);
 	});
+	
+	it('should generate an accurate safety ratio with an abstaining ' + 
+		'validator', function() {
+		let v = new Validator('Test', 100, 1);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 100},
+		]);
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 1,
+			justification: []
+		});
+		assert(
+			v.getEstimate().estimate === 1, 
+			"estimate should return 1"
+		);
+		assert.equal(
+			v.getEstimate().safety, 
+			2/3,
+			"estimate safety should be two thirds"
+		);
+	});
+	
+	it('should generate an accurate safety ratio with all validators' + 
+		'abstaining', function() {
+		let v = new Validator('Test', 100, 1);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 100},
+			{name: 'Cam', weight: 100},
+		]);
+		assert(
+			v.getEstimate().estimate === 1, 
+			"estimate should return 1"
+		);
+		assert.equal(
+			v.getEstimate().safety, 
+			1/4,
+			"estimate safety should be one quarter"
+		);
+	});
+	
+	it('should generate an accurate safety ratio with all validators' + 
+		'agreeing', function() {
+		let v = new Validator('Test', 100, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 100},
+			{name: 'Cam', weight: 100},
+		]);
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 0,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Brenda',
+			estimate: 0,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Cam',
+			estimate: 0,
+			justification: []
+		});
+		assert(
+			v.getEstimate().estimate === 0, 
+			"estimate should return 0"
+		);
+		assert.equal(
+			v.getEstimate().safety, 
+			1,
+			"estimate safety should be one"
+		);
+	});
 });
 
 describe('Validator binary estimation', function() {
