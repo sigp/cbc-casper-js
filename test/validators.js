@@ -4,19 +4,52 @@ var validators = require("../validators")
 
 const Validator = validators.Validator;
 
-describe('validator.getEstimate', function() {
+describe('Validator weighting', function() {
+	it('should learn about validators', function() {
+		let v = new Validator('Test', 0, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 50},
+			{name: 'Cam', weight: 25},
+		]);
+		assert(
+			v.getWeight('Andy') === 100,
+			'Andy should have weight 100'
+		);
+		assert(
+			v.getWeight('Brenda') === 50,
+			'Brenda should have weight 50'
+		);
+		assert(
+			v.getWeight('Cam') === 25,
+			'Cam should have weight 25'
+		);
+	});
+	
+	it('should return a weight of 0 for unknown validators', function() {
+		let v = new Validator('Test', 0, 0);
+		assert(
+			v.getWeight('Zebra') === 0,
+			'An unknown validator should have weight 0'
+		);
+	});
+});
+
+describe('Validator binary estimation', function() {
 	it('should return 1 if all votes are 1', function() {
 		let v = new Validator('Test', 0, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 99},
+		]);
 		v.parseMessage({
 			sender: 'Andy',
 			estimate: 1,
-			weight: 100,
 			justification: []
 		});
 		v.parseMessage({
-			sender: 'Andy',
+			sender: 'Brenda',
 			estimate: 0,
-			weight: 99,
 			justification: []
 		});
 		assert(
@@ -27,16 +60,18 @@ describe('validator.getEstimate', function() {
 	
 	it('should return 0 with majority 0', function() {
 		let v = new Validator('Test', 0, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 99},
+		]);
 		v.parseMessage({
 			sender: 'Andy',
 			estimate: 0,
-			weight: 100,
 			justification: []
 		});
 		v.parseMessage({
-			sender: 'Andy',
+			sender: 'Brenda',
 			estimate: 1,
-			weight: 99,
 			justification: []
 		});
 		assert(
@@ -47,16 +82,18 @@ describe('validator.getEstimate', function() {
 	
 	it('should return 0 if votes are equal', function() {
 		let v = new Validator('Test', 0, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 5},
+			{name: 'Brenda', weight: 5},
+		]);
 		v.parseMessage({
 			sender: 'Andy',
 			estimate: 1,
-			weight: 5,
 			justification: []
 		});
 		v.parseMessage({
 			sender: 'Brenda',
 			estimate: 0,
-			weight: 5,
 			justification: []
 		});
 		assert(
@@ -115,13 +152,18 @@ describe('Validator message generation', function() {
 					estimate: 0,
 					justification: []
 				},
-				msg
+				msg,
+				{
+					sender: 'Sally',
+					estimate: 0,
+					justification: []
+				},
 			]
 		};
 		assert.equal(
 			hashObj(generated),
 			hashObj(expected),
-			'the first message should be as expected'
+			'the generated message should be as expected'
 		)
 	});
 });
@@ -146,7 +188,7 @@ describe('Validator message processing', function() {
 	it('should update last message when parsing a new message from a known sender', function() {
 		const msg1 = {
 			sender: 'Brian',
-			estimate: 1,
+			estimate: 0,
 			justification: [],
 		};
 		const msg2 = {
@@ -155,7 +197,7 @@ describe('Validator message processing', function() {
 			justification: [
 				{
 					sender: 'Brian',
-					estimate: 1,
+					estimate: 0,
 					justification: [],
 				},
 				{
@@ -185,7 +227,7 @@ describe('Validator message processing', function() {
 	it('should not update the last message when parsing a known dependency message', function() {
 		const msg1 = {
 			sender: 'Brian',
-			estimate: 1,
+			estimate: 0,
 			justification: [],
 		};
 		const msg2 = {
@@ -194,7 +236,7 @@ describe('Validator message processing', function() {
 			justification: [
 				{
 					sender: 'Brian',
-					estimate: 1,
+					estimate: 0,
 					justification: [],
 				},
 				{
@@ -228,7 +270,7 @@ describe('Validator Byzantine detection', function() {
 		'one of thier own messages in their justification.', function() {
 		const msg1 = {
 			sender: 'Brian',
-			estimate: 1,
+			estimate: 0,
 			justification: [],
 		};
 		const msg2 = {
@@ -269,7 +311,7 @@ describe('Validator Byzantine detection', function() {
 	it('should flag a sender as Byzantine if they present a contradicting initial message', function() {
 		const msg1 = {
 			sender: 'Brian',
-			estimate: 1,
+			estimate: 0,
 			justification: [],
 		};
 		const msg2 = {
@@ -278,7 +320,7 @@ describe('Validator Byzantine detection', function() {
 			justification: [
 				{
 					sender: 'Brian',
-					estimate: 0,		// <-- contradicts Brian's previous msg
+					estimate: 1,		// <-- contradicts Brian's previous msg
 					justification: [],
 				},
 				{
@@ -312,7 +354,7 @@ describe('Validator Byzantine detection', function() {
 		'justification.', function() {
 		const msg1 = {
 			sender: 'Brian',
-			estimate: 1,
+			estimate: 0,
 			justification: [],
 		};
 		const msg2 = {
@@ -321,7 +363,7 @@ describe('Validator Byzantine detection', function() {
 			justification: [
 				{
 					sender: 'Brian',
-					estimate: 1,
+					estimate: 0,
 					justification: [],
 				},
 				{
@@ -331,7 +373,7 @@ describe('Validator Byzantine detection', function() {
 				},
 				{
 					sender: 'Brian', // <-- Brian is double voting here
-					estimate: 1,
+					estimate: 0,
 					justification: [],
 				},
 			],
@@ -362,7 +404,7 @@ describe('Validator Byzantine detection', function() {
 		'justification (when deep in messages).', function() {
 		const msg1 = {
 			sender: 'Brian',
-			estimate: 1,
+			estimate: 0,
 			justification: [],
 		};
 		const msg2 = {
@@ -371,7 +413,7 @@ describe('Validator Byzantine detection', function() {
 			justification: [
 				{
 					sender: 'Brian',
-					estimate: 1,
+					estimate: 0,
 					justification: [],
 				},
 				{
@@ -380,12 +422,12 @@ describe('Validator Byzantine detection', function() {
 					justification: [
 						{
 							sender: 'Andy',
-							estimate: 1,
+							estimate: 0,
 							justification: [],
 						},
 						{
 							sender: 'Andy', // <-- duplicate
-							estimate: 1,
+							estimate: 0,
 							justification: [],
 						},
 					],
@@ -403,13 +445,19 @@ describe('Validator Byzantine detection', function() {
 		// parse the second message
 		v.parseMessage(msg2);
 		// Brian should be flagged as Byzantine
-		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
-		// the message should have been ignored
+		assert(v.isByzantine['Sally'], 'Sally should be Byzantine')
+		// Brian's message should have been ignored
 		assert.equal(
 			v.lastMsgHashFrom('Brian'),
 			v.addToHashTable(msg1, {}), 
 			'the message was invalid and should not have become ' + 
 			'the latest messsage.'
+		);
+		// Sallys's message should have been ignored
+		assert.equal(
+			v.lastMsgHashFrom('Sally'),
+			undefined, 
+			'Sallys message was Byzantine and should not have been stored '		
 		);
 	});
 	
