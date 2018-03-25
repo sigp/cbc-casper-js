@@ -45,8 +45,6 @@ random.addArgument(
 
 var args = parser.parseArgs();
 
-console.log(args)
-
 if(args.sim === "random") {
 	let binary = require('./sims/binary');
 	console.log(binary.simulator(
