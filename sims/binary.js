@@ -1,32 +1,20 @@
-var estimator = require("./binary");
-var utils = require("./binary/utils");
-var network = require("./network");
-var validators = require("./validators");
+var network = require("../network");
+var validators = require("../validators");
 
 const Validator = validators.Validator;
 const Network = network.Network;
 
-const messageItinery = function(validators) {
-	return validators.reduce((acc, from) => {
-		validators.forEach(to => {
-			if(utils.randomBool() && to !== from) {
-				acc.push([from, to]);
-			}
-		});
-		return acc;
-	}, []);
+const randomBool = p => Math.random() <= p;
+
+const getProbability = v => 1 / (Math.pow(v.length, 2) - v.length);
+
+const popRandomElement = function(a) {
+	const i = a[Math.round(Math.random() * (a.length - 1))];
+	a.splice(i, 1);
+	return i;
 }
 
-const buildInitialMessage = function(validator) {
-	return {
-		sender: validator.name,
-		estimate: validator.startingPoint,
-		justification: []
-	};
-}
-
-
-const rand = function() {
+const rand = function(rounds, messagesPerRound) {
 	const validators = [
 		new Validator(name="Andy", weight=100, startingPoint=0),
 		new Validator(name="Brian", weight=100, startingPoint=0),
@@ -34,47 +22,27 @@ const rand = function() {
 	]
 	let n = new Network(validators);
 
-	/*
-	 * Send the first round of messages
-	 */
-	const itinery = messageItinery(validators);
-	for(i in itinery) {
-		const from = itinery[i][0];
-		const to = itinery[i][1];
-		const msg = buildInitialMessage(from);
-		n.send(msg, to.name, from.name);
-	}
-
-	/*
-	 * Parse the messages
-	 */
-	validators.forEach(v => {
-		n.receive(v.name).forEach(packet => {
-			v.parseMessage(packet.msg);
+	const doRound = function(messages) {
+		// Send messages
+		for(var i = 0; i < messages; i++) {
+			let candidates = validators.map((_, i) => i);
+			const to = validators[popRandomElement(candidates)];
+			const from = validators[popRandomElement(candidates)];
+			n.send(from.generateMessage(), from.name, to.name);
+		}
+		// Receive messages
+		validators.forEach(v => {
+			n.receive(v.name).forEach(packet => {
+				v.parseMessage(packet.msg);
+			});
 		});
-		// console.log(v.generateMessage())
-	});
-	
-	const log = n.getLog();
-
-	const weights = validators.map(v => v.weight)
-	const bets = utils.getRandomBets(weights);
-	const estimate = estimator.estimate(bets);
-	const justification = validators.map((v, i) => {
-		v.choice = bets[i].choice;
-		return v;
-	});
-
-	const randomValidatorIndex = Math.floor(
-		Math.random() * validators.length
-	);
-	const sender = validators[randomValidatorIndex].name;
-
-	const message = {
-		sender,
-		estimate,
-		justification
 	}
+
+	for(var i = 0; i < rounds; i++) {
+		doRound(messagesPerRound);
+	}
+
+	console.log(n.getLog())
 };
 
-rand();
+rand(5, 1);
