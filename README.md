@@ -46,7 +46,7 @@ are randomised:
  - The senders and recipients of messages for each round. (The number of messages
    sent per round is specified by the `-m` flag.)
    
-The random wim will output a JSON object to the command-line with the following
+The random sim will output a JSON object to console with the following
 properties:
 
  - `decisions`: The estimates and associated safety ratios for each validator,
