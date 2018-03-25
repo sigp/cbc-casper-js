@@ -33,6 +33,19 @@ describe('Validator weighting', function() {
 			'An unknown validator should have weight 0'
 		);
 	});
+	
+	it('should generate an accurate weight sum', function() {
+		let v = new Validator('Test', 10, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 50},
+			{name: 'Cam', weight: 25},
+		]);
+		assert(
+			v.getWeightSum() === 185,
+			'The weight sum should be accurate'
+		);
+	});
 });
 
 describe('Validator binary estimation', function() {

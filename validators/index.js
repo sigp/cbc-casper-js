@@ -42,6 +42,12 @@ class Validator {
 		return this.weights[who] ? this.weights[who] : 0;
 	}
 
+	getWeightSum() {
+		return Object.keys(this.weights).reduce((acc, s) => {
+			return acc + this.weights[s]
+		}, 0);
+	}
+
 	flagAsByzantine(sender) {
 		this.isByzantine[sender] = true;
 	}
