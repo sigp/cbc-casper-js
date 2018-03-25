@@ -27,13 +27,13 @@ ES6 syntax and therefore some older versions of node will be incompatible.
 
 # Usage
 
-For first time usage, clone the repo and run `$ npm install` in the repo
+For first time usage, clone the repo and run `npm install` in the repo
 directory.
 
 ## Command-line
 
 The command-line script is `casper.js` and it has a fully featured argument
-parser; you can run `./casper.js -h` to view help.
+parser; you can run `./casper.js -h` (or `node casper.js -h`) to view help.
 
 ### Random Binary Conensus Simulator
 
