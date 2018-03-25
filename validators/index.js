@@ -10,13 +10,14 @@ class ByzantineError extends Error {
 class Validator {
 	constructor(name, weight, startingPoint) {
 		this.name = name;
-		this.weight = weight;
 
 		this.msgHashTable = {};
 		this.lastMsgHashes = {};
 		this.messageSequences = {};
 		this.isByzantine = {};
 		this.weights = {};
+
+		this.weights[this.name] = weight;
 
 		/*
 		 * Add the starting point message to the hash table
@@ -25,7 +26,7 @@ class Validator {
 		 */
 		const msg = {
 			sender: this.name,
-			weight: this.weight,
+			weight: this.getWeight(this.name),
 			estimate: startingPoint,
 			justification: [],
 		};
@@ -126,7 +127,7 @@ class Validator {
 		 */
 		const msg = {
 			sender: this.name,
-			weight: this.weight,
+			weight: this.getWeight(this.name),
 			estimate: this.getEstimate(latestMsgs).estimate,
 			justification: latestMsgs,
 		}
