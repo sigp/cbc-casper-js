@@ -4,9 +4,7 @@ var validators = require("../validators");
 const Validator = validators.Validator;
 const Network = network.Network;
 
-const randomBool = p => Math.random() <= p;
-
-const getProbability = v => 1 / (Math.pow(v.length, 2) - v.length);
+const randomBool = () => (Math.random() >= 0.5) ? 1 : 0
 
 const popRandomElement = function(a) {
 	const i = a[Math.round(Math.random() * (a.length - 1))];
@@ -14,12 +12,19 @@ const popRandomElement = function(a) {
 	return i;
 }
 
-const rand = function(requiredSafetyRatio, messagesPerRound) {
-	const validatorInfo = [
-		{name: "Andy", weight: 100, startingPoint: 0},
-		{name: "Brian", weight: 100, startingPoint: 0},
-		{name: "Chris", weight: 100, startingPoint: 1},
-	]
+const simulator = function(
+	requiredSafetyRatio, 
+	messagesPerRound, 
+	validatorCount
+) {
+	const validatorInfo = [];
+	for(var i = 0; i < validatorCount; i++) {
+		validatorInfo.push({
+			name: i.toString(),
+			weight: 100,
+			startingPoint: randomBool()
+		});
+	}
 	const validators = validatorInfo.map(v => {
 		return new Validator(
 			name=v.name,
@@ -65,10 +70,10 @@ const rand = function(requiredSafetyRatio, messagesPerRound) {
 
 	const output = {
 		decisions,
+		initialConfig: validatorInfo,
 		log: n.getLog()
 	}
 
 	return output;
 };
-
-console.log(rand(0.5, 1));
+module.exports.simulator = simulator;

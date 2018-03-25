@@ -21,6 +21,7 @@
   "author": "Paul Hauner",
   "license": "MIT",
   "dependencies": {
+    "argparse": "^1.0.10",
     "mocha": "^5.0.4",
     "object-hash": "^1.3.0"
   }
