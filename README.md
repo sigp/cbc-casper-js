@@ -1,4 +1,4 @@
-# CBC Casper the Friendly Javascript Ghost
+# Casper the Friendly Javascript Ghost :ghost:
 
 ![Travis CI](https://travis-ci.org/sigp/cbc-casper-js.svg?branch=master)
 
