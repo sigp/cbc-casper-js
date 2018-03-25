@@ -15,9 +15,9 @@ Ryan, Vlad Zamfir, Karl Floersch and others.
 
 The motivation for creating a new implemenation can be seen in the following:
 
-- Browser compatibility: running Casper sims in the browser lowers the
-  barrier-to-entry for people to understand how CBC Casper TFG works.
-- Diversity: mutliple implementations will allow for a wider range of 
+- Browser compatibility: running Casper sims in the browser should hopefully
+  improve accessibility for those who wish to understand how Casper TFG work.
+- Diversity: mutliple implementations will hopefully allow for a wider range of 
   perspectives.
 
 # Requirements
@@ -27,14 +27,71 @@ ES6 syntax and therefore some older versions of node will be incompatible.
 
 # Usage
 
-Currently all that exists is a `Validator` class and a suite of Mocha tests.
+For first time usage, clone the repo and run `$ npm install` in the repo
+directory.
 
-To run these tests, clone the repo then run: 
+## Command-line
+
+The command-line script is `casper.js` and it has a fully featured argument
+parser; you can run `./casper.js -h` to view help.
+
+### Random Binary Conensus Simulator
+
+Currenly the only available command-line function is `$ ./casper.js random`
+which will run a binary consensus simulation where the following conditions
+are randomised:
+
+ - The initial estimate of the validators. I.e., if they choose to start with a 
+   `0` or `1`.
+ - The senders and recipients of messages for each round. (The number of messages
+   sent per round is specified by the `-m` flag.)
+   
+The random wim will output a JSON object to the command-line with the following
+properties:
+
+ - `decisions`: The estimates and associated safety ratios for each validator,
+  as of simulation completion.
+ - `initialConfig`: The starting values and weights for each validator. I.e.,
+  what their states were before the consensus process started.
+ - `log`: The full log of messages sent between validators during the consensus
+  process. At this stage the log is not printed in it's entirety for readability.
+   
+_Note: due to the random nature of this simulation, it can quite easily run for 
+very long times and generate very large messages. E.g., running a sim with 100
+validators and only 1 message per round is likely going to take a lot of time 
+and use a bunch of RAM. Simulate with caution._
+
+#### Example
+
+The following example is running a simulation with the following attributes:
+
+- `-c 3`: Three validators will form consensus.
+- `-s 0.5`: Each validator must see an e-clique with a weight of greater than half
+  of the total validator weight before the sim will end. Put simpler, each 
+  validator must see more than half of the other validators agreeing with them.
+- `-m 1`: Each round there will be only 1 message sent between validators.
 
 ```
-$ npm install
-$ npm run test
+$ ./casper.js random -c 3 -s 0.5 -m 1
+{ decisions: 
+   { '0': { estimate: 1, safety: 0.6666666666666666 },
+     '1': { estimate: 1, safety: 1 },
+     '2': { estimate: 1, safety: 1 } },
+  initialConfig: 
+   [ { name: '0', weight: 100, startingPoint: 1 },
+     { name: '1', weight: 100, startingPoint: 1 },
+     { name: '2', weight: 100, startingPoint: 1 } ],
+  log: 
+   [ { msg: [Object], to: '0', from: '1', timestamp: 1521979672020 },
+     { msg: [Object], to: '1', from: '2', timestamp: 1521979672021 },
+     { msg: [Object], to: '1', from: '2', timestamp: 1521979672021 },
+     { msg: [Object], to: '1', from: '0', timestamp: 1521979672021 },
+     { msg: [Object], to: '2', from: '0', timestamp: 1521979672022 } ] }
 ```
+
+## Tests
+
+Tests are written in Mocha, run them with `$ npm run test`.
 
 # Notes
 
