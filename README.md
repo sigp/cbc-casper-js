@@ -1,5 +1,7 @@
 # CBC Casper the Friendly Javascript Ghost
 
+![Travis CI](https://travis-ci.org/sigp/cbc-casper-js.svg?branch=master)
+
 A Javascript implementation of Vlad Zamfir's Casper the Friendly Ghost CBC
 consensus protocol.
 
