@@ -2,11 +2,11 @@ var hashObj = require('object-hash');
 var assert = require("assert");
 var validators = require("../validators")
 
-const Validator = validators.Validator;
+const BinaryValidator = validators.BinaryValidator;
 
 describe('Validator weighting', function() {
 	it('should learn about validators', function() {
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 50},
@@ -27,7 +27,7 @@ describe('Validator weighting', function() {
 	});
 	
 	it('should return a weight of 0 for unknown validators', function() {
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		assert(
 			v.getWeight('Zebra') === 0,
 			'An unknown validator should have weight 0'
@@ -35,7 +35,7 @@ describe('Validator weighting', function() {
 	});
 	
 	it('should generate an accurate weight sum', function() {
-		let v = new Validator('Test', 10, 0);
+		let v = new BinaryValidator('Test', 10, 0);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 50},
@@ -49,7 +49,7 @@ describe('Validator weighting', function() {
 	
 	it('should generate an accurate safety ratio with an abstaining ' + 
 		'validator', function() {
-		let v = new Validator('Test', 100, 1);
+		let v = new BinaryValidator('Test', 100, 1);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 100},
@@ -72,7 +72,7 @@ describe('Validator weighting', function() {
 	
 	it('should generate an accurate safety ratio with all validators' + 
 		'abstaining', function() {
-		let v = new Validator('Test', 100, 1);
+		let v = new BinaryValidator('Test', 100, 1);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 100},
@@ -91,7 +91,7 @@ describe('Validator weighting', function() {
 	
 	it('should generate an accurate safety ratio with all validators' + 
 		'agreeing', function() {
-		let v = new Validator('Test', 100, 0);
+		let v = new BinaryValidator('Test', 100, 0);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 100},
@@ -126,7 +126,7 @@ describe('Validator weighting', function() {
 
 describe('Validator binary estimation', function() {
 	it('should return 1 if all votes are 1', function() {
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 99},
@@ -148,7 +148,7 @@ describe('Validator binary estimation', function() {
 	});
 	
 	it('should return 0 with majority 0', function() {
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 99},
@@ -170,7 +170,7 @@ describe('Validator binary estimation', function() {
 	});
 	
 	it('should return 0 if votes are equal', function() {
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		v.learnValidators([
 			{name: 'Andy', weight: 5},
 			{name: 'Brenda', weight: 5},
@@ -195,7 +195,7 @@ describe('Validator binary estimation', function() {
 describe('Validator message generation', function() {
 	
 	it('should generate a starting point message', function() {
-		let v = new Validator('Test', 100, 0)
+		let v = new BinaryValidator('Test', 100, 0)
 		const msg = v.generateMessage();
 		const expectedMsg = {
 			sender: 'Test',
@@ -227,7 +227,7 @@ describe('Validator message generation', function() {
 				}
 			],
 		};
-		let v = new Validator('Test', 100, 0);
+		let v = new BinaryValidator('Test', 100, 0);
 		v.parseMessage(msg);
 		const generated = v.generateMessage();
 		const expected = {
@@ -265,7 +265,7 @@ describe('Validator message processing', function() {
 			estimate: 1,
 			justification: [],
 		}
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		v.parseMessage(msg);
 		assert.equal(
 			v.lastMsgHashFrom('Brian'),
@@ -296,7 +296,7 @@ describe('Validator message processing', function() {
 				}
 			],
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
 		v.parseMessage(msg1);
 		assert.equal(
@@ -335,7 +335,7 @@ describe('Validator message processing', function() {
 				}
 			],
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the most recent message
 		v.parseMessage(msg2);
 		assert.equal(
@@ -378,7 +378,7 @@ describe('Validator Byzantine detection', function() {
 				}
 			],
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
 		v.parseMessage(msg1);
 		assert.equal(
@@ -419,7 +419,7 @@ describe('Validator Byzantine detection', function() {
 				}
 			],
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
 		v.parseMessage(msg1);
 		assert.equal(
@@ -467,7 +467,7 @@ describe('Validator Byzantine detection', function() {
 				},
 			],
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
 		v.parseMessage(msg1);
 		assert.equal(
@@ -523,7 +523,7 @@ describe('Validator Byzantine detection', function() {
 				},
 			],
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
 		v.parseMessage(msg1);
 		assert.equal(
@@ -649,7 +649,7 @@ describe('Validator Byzantine detection', function() {
 				}
 			]
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
 		v.parseMessage(msg1);
 		assert.equal(
@@ -786,7 +786,7 @@ describe('Validator Byzantine detection', function() {
 				}
 			]
 		};
-		let v = new Validator('Test', 0, 0);
+		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
 		v.parseMessage(msg1);
 		assert.equal(
@@ -850,7 +850,7 @@ describe('Validator message storage', function() {
 			],
 		}
 
-		let v = new Validator('Test', 100, 0);
+		let v = new BinaryValidator('Test', 100, 0);
 		let table = {};
 		const rootHash = v.addToHashTable(nested, table);
 		

@@ -87,27 +87,9 @@ class Validator {
 	}
 
 	getEstimate() {
-		const msgs = Object.keys(this.lastMsgHashes).map(m => {
-			return this.msgHashTable[this.lastMsgHashes[m]]
-		});
-		const totals = msgs.reduce((totals, msg) => {
-			totals[msg.estimate] += this.getWeight(msg.sender);
-			return totals;
-		}, [0, 0]);
-		const estimate = totals[1] > totals[0] ? 1 : 0;
-		const safety = totals[estimate] / this.getWeightSum();
-
-		/*
-		 * As per CasperTFG paper:
-		 *
-		 * E(M) = 0 if Score(0, M) > Score(1, M)
-		 * E(M) = 1 if Score(1, M) > Score(0, M)
-		 * E(M) = 0 if Score(1, M) = Score(0, M)
-		 */
-		return {
-			estimate,
-			safety
-		}
+		throw new Error("The Validator class should not be used directly. " + 
+			"Use an extended class specific to your conensus requirements, " + 
+			"such as BinaryValidator.");
 	}
 
 	generateMessage() {
@@ -295,3 +277,30 @@ class Validator {
 	}
 }
 module.exports.Validator = Validator;
+
+class BinaryValidator extends Validator {
+	getEstimate() {
+		const msgs = Object.keys(this.lastMsgHashes).map(m => {
+			return this.msgHashTable[this.lastMsgHashes[m]]
+		});
+		const totals = msgs.reduce((totals, msg) => {
+			totals[msg.estimate] += this.getWeight(msg.sender);
+			return totals;
+		}, [0, 0]);
+		const estimate = totals[1] > totals[0] ? 1 : 0;
+		const safety = totals[estimate] / this.getWeightSum();
+
+		/*
+		 * As per CasperTFG paper:
+		 *
+		 * E(M) = 0 if Score(0, M) > Score(1, M)
+		 * E(M) = 1 if Score(1, M) > Score(0, M)
+		 * E(M) = 0 if Score(1, M) = Score(0, M)
+		 */
+		return {
+			estimate,
+			safety
+		}
+	}
+}
+module.exports.BinaryValidator = BinaryValidator;
