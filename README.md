@@ -69,14 +69,14 @@ and use a bunch of RAM. Simulate with caution._
 
 The following example is running a simulation with the following attributes:
 
-- `-c 3`: Three validators will form consensus.
+- `-n 3`: Three validators will form consensus.
 - `-s 0.5`: Each validator must see an e-clique with a weight of greater than half
   of the total validator weight before the sim will end. Put simpler, each 
   validator must see more than half of the other validators agreeing with them.
 - `-m 1`: Each round there will be only 1 message sent between validators.
 
 ```
-$ ./casper.js random -c 3 -s 0.5 -m 1
+$ ./casper.js random -n 3 -s 0.5 -m 1
 { decisions: 
    { '0': { estimate: 1, safety: 0.6666666666666666 },
      '1': { estimate: 1, safety: 1 },
