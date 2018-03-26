@@ -1,79 +1,82 @@
-var network = require("../network");
-var validators = require("../validators");
+var Network = require("../network").Network;
+var Validator = require("../validators").BinaryValidator;
 
-const Validator = validators.Validator;
-const Network = network.Network;
+class Simulator {
+	constructor(validatorCount, requiredSafetyRatio, messagesPerRound) {
+		this.validatorCount = validatorCount;
+		this.requiredSafetyRatio = requiredSafetyRatio;
+		this.messagesPerRound = messagesPerRound;
 
-const randomBool = () => (Math.random() >= 0.5) ? 1 : 0
-
-const popRandomElement = function(a) {
-	const i = a[Math.round(Math.random() * (a.length - 1))];
-	a.splice(i, 1);
-	return i;
-}
-
-const simulator = function(
-	requiredSafetyRatio, 
-	messagesPerRound, 
-	validatorCount
-) {
-	const validatorInfo = [];
-	for(var i = 0; i < validatorCount; i++) {
-		validatorInfo.push({
-			name: i.toString(),
-			weight: 100,
-			startingPoint: randomBool()
+		this.validatorInfo = [];
+		for(var i = 0; i < this.validatorCount; i++) {
+			this.validatorInfo.push({
+				name: i.toString(),
+				weight: 100,
+				startingPoint: this.getStartingPoint()
+			});
+		}
+		this.validators = this.validatorInfo.map(v => {
+			return new Validator(
+				v.name,
+				v.weight,
+				v.startingPoint,
+			);
 		});
+		this.validators.forEach(v => v.learnValidators(this.validatorInfo));
+		this.network = new Network(this.validators);
 	}
-	const validators = validatorInfo.map(v => {
-		return new Validator(
-			name=v.name,
-			weight=v.weight,
-			startingPoint=v.startingPoint,
-		);
-	});
-	validators.forEach(v => v.learnValidators(validatorInfo));
 
-	let n = new Network(validators);
+	getStartingPoint() {
+		return (Math.random() >= 0.5) ? 1 : 0
+	}
 
-	const doRound = function(messages) {
+	popRandomElement(a) {
+		const i = a[Math.round(Math.random() * (a.length - 1))];
+		a.splice(i, 1);
+		return i;
+	}
+	
+	doRound(messages) {
 		// Send messages
 		for(var i = 0; i < messages; i++) {
-			let candidates = validators.map((_, i) => i);
-			const to = validators[popRandomElement(candidates)];
-			const from = validators[popRandomElement(candidates)];
-			n.send(from.generateMessage(), from.name, to.name);
+			let candidates = this.validators.map((_, i) => i);
+			const to = this.validators[this.popRandomElement(candidates)];
+			const from = this.validators[this.popRandomElement(candidates)];
+			this.network.send(from.generateMessage(), from.name, to.name);
 		}
 		// Receive messages
-		validators.forEach(v => {
-			n.receive(v.name).forEach(packet => {
+		this.validators.forEach(v => {
+			this.network.receive(v.name).forEach(packet => {
 				v.parseMessage(packet.msg);
 			});
 		});
 	}
-	
-	let consensusAchieved = false;
-	while(consensusAchieved === false) {
-		doRound(messagesPerRound);
-		consensusAchieved = true;
-		validators.forEach(v => {
-			if(v.getEstimate().safety <= requiredSafetyRatio) {
-				consensusAchieved = false;
-			}
-		});
-	}
 
-	const decisions = validators.reduce((acc, v) => {
-		acc[v.name] = v.getEstimate();
-		return acc;
-	}, {})
+	simulate() {
+		let consensusAchieved = false;
+		while(consensusAchieved === false) {
+			this.doRound(this.messagesPerRound);
+			consensusAchieved = true;
+			this.validators.forEach(v => {
+				if(v.getEstimate().safety <= this.requiredSafetyRatio) {
+					consensusAchieved = false;
+				}
+			});
+		}
 
-	const output = {
-		decisions,
-		initialConfig: validatorInfo,
-		log: n.getLog()
-	}
+		const decisions = this.validators.reduce((acc, v) => {
+			acc[v.name] = v.getEstimate();
+			return acc;
+		}, {})
 
-	return output;
-};
-module.exports.simulator = simulator;
+		const output = {
+			decisions,
+			initialConfig: this.validatorInfo,
+			log: this.network.getLog()
+		}
+
+		return output;
+	};
+}
+module.exports.BinarySimulator = Simulator;
+

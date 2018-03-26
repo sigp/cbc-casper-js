@@ -14,10 +14,13 @@ var sims = parser.addSubparsers({
   dest:"sim"
 });
 
+/*
+ * Random Binary Simulation
+ */
 var random = sims.addParser('random', {addHelp:true});
 
 random.addArgument(
-	[ '-c', '--validator-count' ],
+	[ '-n', '--validator-count' ],
 	{
 		defaultValue: 3,
 		type: 'int',
@@ -47,9 +50,10 @@ var args = parser.parseArgs();
 
 if(args.sim === "random") {
 	let binary = require('./sims/binary');
-	console.log(binary.simulator(
+	let simulator = new binary.BinarySimulator(
+		args.validator_count,
 		args.safety_ratio,
-		args.messages_per_round,
-		args.validator_count
-	));
+		args.messages_per_round
+	);
+	console.log(simulator.simulate());
 }
