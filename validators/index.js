@@ -276,7 +276,6 @@ class Validator {
 		return isLatestMsg;
 	}
 }
-module.exports.Validator = Validator;
 
 class BinaryValidator extends Validator {
 	getEstimate() {
