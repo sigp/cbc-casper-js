@@ -310,7 +310,7 @@ class BinaryValidator extends Validator {
 		 * of:
 		 *
 		 * the sum of the weights applied to an estimate
-		 * ---------------------------------------------
+		 * -----------------dividedBy--------------------
 		 *    the total sum of all validator weights
 		 */
 		const safety = totals[estimate] / this.getWeightSum();
