@@ -27,13 +27,13 @@ ES6 syntax and therefore some older versions of node will be incompatible.
 
 # Usage
 
-For first time usage, clone the repo and run `$ npm install` in the repo
+For first time usage, clone the repo and run `npm install` in the repo
 directory.
 
 ## Command-line
 
 The command-line script is `casper.js` and it has a fully featured argument
-parser; you can run `./casper.js -h` to view help.
+parser; you can run `./casper.js -h` (or `node casper.js -h`) to view help.
 
 ### Random Binary Conensus Simulator
 
@@ -46,7 +46,7 @@ are randomised:
  - The senders and recipients of messages for each round. (The number of messages
    sent per round is specified by the `-m` flag.)
    
-The random wim will output a JSON object to the command-line with the following
+The random sim will output a JSON object to console with the following
 properties:
 
  - `decisions`: The estimates and associated safety ratios for each validator,
