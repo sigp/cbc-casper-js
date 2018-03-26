@@ -327,30 +327,42 @@ class IntegerValidator extends Validator {
 	getEstimate() {
 		// Gather all the latest messages into an array.
 		const msgs = this.getLatestMessages()
-		// Reduce the latest messages into a tally of votes
-		// and weights per validator.
-		const totals = msgs.reduce((totals, msg) => {
-			totals[msg.estimate] = msg.estimate in totals ? totals[msg.estimate] : 0;
-			totals[msg.estimate]
-			return totals;
-		}, {});
+		// Sort the array so estimates are in ascending order.
+		msgs.sort((a, b) => a.estimate - b.estimate);
+		// Calculate the sum of all weights in these messages.
+		const totalWeight = msgs.reduce((acc, m) => {
+			return acc + this.getWeight(m.sender)
+		}, 0);
 		/*
-		 * Calculate the binary estimate as per CasperTFG paper:
-		 *
-		 * E(M) = 0 if Score(0, M) > Score(1, M)
-		 * E(M) = 1 if Score(1, M) > Score(0, M)
-		 * E(M) = 0 if Score(1, M) = Score(0, M)
+		 * Run over the array of estimates and generate a rolling
+		 * sum of weights. Once this weights exceeds half of the 
+		 * total weights, choose the estimate of the weight which
+		 * "tipped the scales".
 		 */
-		const estimate = totals[1] > totals[0] ? 1 : 0;
+		let runningTotal = 0;
+		const targetWeight = totalWeight / 2;
+		const electedMessage = msgs.find(m => {
+			runningTotal += this.getWeight(m.sender);
+			return runningTotal >= targetWeight;
+		});
+		const estimate = electedMessage.estimate;
 		/*
 		 * The safety of the estimate is expressed as a ratio
 		 * of:
 		 *
 		 * the sum of the weights applied to an estimate
-		 * ---------------------------------------------
+		 * -----------------dividedBy--------------------
 		 *    the total sum of all validator weights
+		 *
+		 *  Note: we use the only the weights which directly voted for
+		 *  this estimate. I.e., we do not use the weights of votes for
+		 *  integers lower than this (like the ones we used to find the 
+		 *  estimate).
 		 */
-		const safety = totals[estimate] / this.getWeightSum();
+		const estimateWeight = msgs.reduce((acc, m) => {
+			return m.estimate === estimate ? acc + this.getWeight(m.sender) : acc;
+		}, 0);
+		const safety = estimateWeight / this.getWeightSum();
 
 		return {
 			estimate,

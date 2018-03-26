@@ -3,6 +3,7 @@ var assert = require("assert");
 var validators = require("../validators")
 
 const BinaryValidator = validators.BinaryValidator;
+const IntegerValidator = validators.IntegerValidator;
 
 describe('Validator weighting', function() {
 	it('should learn about validators', function() {
@@ -193,11 +194,11 @@ describe('Validator binary estimation', function() {
 });
 
 describe('Validator integer estimation', function() {
-	it('should return 5 if all votes are 5', function() {
-		let v = new BinaryValidator('Test', 0, 0);
+	it('should return 5 if all weighted votes are 5', function() {
+		let v = new IntegerValidator('Test', 0, 0);
 		v.learnValidators([
 			{name: 'Andy', weight: 100},
-			{name: 'Brenda', weight: 99},
+			{name: 'Brenda', weight: 100},
 		]);
 		v.parseMessage({
 			sender: 'Andy',
@@ -213,6 +214,84 @@ describe('Validator integer estimation', function() {
 			v.getEstimate().estimate,
 			5, 
 			"estimate should return 5"
+		);
+	});
+
+	it('should select the floor of the middle of an uneven number of ' + 
+		'sequential, evenly weighted votes', function() {
+		let v = new IntegerValidator('Test', 0, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 100},
+			{name: 'Catherine', weight: 100},
+			{name: 'Dave', weight: 100},
+		]);
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 1,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Brenda',
+			estimate: 2,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Catherine',
+			estimate: 3,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Dave',
+			estimate: 4,
+			justification: []
+		});
+		assert.equal(
+			v.getEstimate().estimate,
+			2, 
+			"estimate should return 2"
+		);
+	});
+
+	it('should select the mean of an event number of sequential, evenly ' + 
+		'weighted votes', function() {
+		let v = new IntegerValidator('Test', 0, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 100},
+			{name: 'Catherine', weight: 100},
+			{name: 'Dave', weight: 100},
+			{name: 'Eddy', weight: 100},
+		]);
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 1,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Brenda',
+			estimate: 2,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Catherine',
+			estimate: 3,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Dave',
+			estimate: 4,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Eddy',
+			estimate: 5,
+			justification: []
+		});
+		assert.equal(
+			v.getEstimate().estimate,
+			3, 
+			"estimate should return 3"
 		);
 	});
 });
