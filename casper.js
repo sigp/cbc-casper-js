@@ -14,10 +14,13 @@ var sims = parser.addSubparsers({
   dest:"sim"
 });
 
+/*
+ * Random Binary Simulation
+ */
 var random = sims.addParser('random', {addHelp:true});
 
 random.addArgument(
-	[ '-c', '--validator-count' ],
+	[ '-n', '--validator-count' ],
 	{
 		defaultValue: 3,
 		type: 'int',
