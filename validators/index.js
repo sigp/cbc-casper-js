@@ -315,13 +315,6 @@ class BinaryValidator extends Validator {
 		 */
 		const safety = totals[estimate] / this.getWeightSum();
 
-		/*
-		 * As per CasperTFG paper:
-		 *
-		 * E(M) = 0 if Score(0, M) > Score(1, M)
-		 * E(M) = 1 if Score(1, M) > Score(0, M)
-		 * E(M) = 0 if Score(1, M) = Score(0, M)
-		 */
 		return {
 			estimate,
 			safety
@@ -329,3 +322,40 @@ class BinaryValidator extends Validator {
 	}
 }
 module.exports.BinaryValidator = BinaryValidator;
+
+class IntegerValidator extends Validator {
+	getEstimate() {
+		// Gather all the latest messages into an array.
+		const msgs = this.getLatestMessages()
+		// Reduce the latest messages into a tally of votes
+		// and weights per validator.
+		const totals = msgs.reduce((totals, msg) => {
+			totals[msg.estimate] = msg.estimate in totals ? totals[msg.estimate] : 0;
+			totals[msg.estimate]
+			return totals;
+		}, {});
+		/*
+		 * Calculate the binary estimate as per CasperTFG paper:
+		 *
+		 * E(M) = 0 if Score(0, M) > Score(1, M)
+		 * E(M) = 1 if Score(1, M) > Score(0, M)
+		 * E(M) = 0 if Score(1, M) = Score(0, M)
+		 */
+		const estimate = totals[1] > totals[0] ? 1 : 0;
+		/*
+		 * The safety of the estimate is expressed as a ratio
+		 * of:
+		 *
+		 * the sum of the weights applied to an estimate
+		 * ---------------------------------------------
+		 *    the total sum of all validator weights
+		 */
+		const safety = totals[estimate] / this.getWeightSum();
+
+		return {
+			estimate,
+			safety
+		}
+	}
+}
+module.exports.IntegerValidator = IntegerValidator;

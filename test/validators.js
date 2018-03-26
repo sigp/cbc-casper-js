@@ -192,6 +192,31 @@ describe('Validator binary estimation', function() {
 	});
 });
 
+describe('Validator integer estimation', function() {
+	it('should return 5 if all votes are 5', function() {
+		let v = new BinaryValidator('Test', 0, 0);
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 99},
+		]);
+		v.parseMessage({
+			sender: 'Andy',
+			estimate: 5,
+			justification: []
+		});
+		v.parseMessage({
+			sender: 'Brenda',
+			estimate: 5,
+			justification: []
+		});
+		assert.equal(
+			v.getEstimate().estimate,
+			5, 
+			"estimate should return 5"
+		);
+	});
+});
+
 describe('Validator message generation', function() {
 	
 	it('should generate a starting point message', function() {
