@@ -138,7 +138,7 @@ describe('Validator binary estimation', function() {
 		});
 		v.parseMessage({
 			sender: 'Brenda',
-			estimate: 0,
+			estimate: 1,
 			justification: []
 		});
 		assert(
@@ -160,7 +160,7 @@ describe('Validator binary estimation', function() {
 		});
 		v.parseMessage({
 			sender: 'Brenda',
-			estimate: 1,
+			estimate: 0,
 			justification: []
 		});
 		assert(
