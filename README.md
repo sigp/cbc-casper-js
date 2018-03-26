@@ -116,4 +116,6 @@ Any validator which defies these rules will be flagged as Byzantine.
   - [x] Command-line simulator
 - [ ] Integer Consensus
 - [ ] Blockchain Consensus
+- [ ] Full code coverage for tests
+- [ ] Linting
 - [ ] Graphical simulation (to be implemented as a separate project)
