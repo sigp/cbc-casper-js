@@ -11,6 +11,10 @@ Vlad Zamfir and also draws inspiration from the current [Python
 implementation](https://github.com/ethereum/cbc-casper) by Nate Rush, Danny
 Ryan, Vlad Zamfir, Karl Floersch and others.
 
+*Note: this project is still in very early stages. It is likely faulty and
+is subject to significant change. This should only be the case for the next
+few weeks (i.e., until mid-April 2018).*
+
 # Motivation
 
 The motivation for creating a new implemenation can be seen in the following:
