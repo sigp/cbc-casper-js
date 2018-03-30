@@ -35,7 +35,10 @@ class Validator {
 	}
 
 	learnValidators(validators) {
-		validators.forEach(v => this.weights[v.name] = v.weight);
+		validators.forEach(v => {
+			this.weights[v.name] = v.weight;
+			this.messageSequences[v.name] = [];
+		});
 	}
 
 	getWeight(who) {
@@ -66,6 +69,10 @@ class Validator {
 
 	lastMsgHashFrom(who) {
 		return this.lastMsgHashes[who];
+	}
+
+	getMessage(hash) {
+		return this.msgHashTable[hash];
 	}
 
 	getLatestMessages() {
@@ -288,6 +295,79 @@ class Validator {
 }
 
 class BinaryValidator extends Validator {
+
+	/*
+	 * Given a message hash and a linear history of hashes,
+	 * locate the given hash in the history, then attempt to find
+	 * a future hash with a conflicting estimate.
+	 *
+	 * If a conflicting hash is found, return it. Otherwise,
+	 * return false.
+	 */
+	findContradictingFutureMessage(hash, hashes) {
+		const estimate = this.getMessage(hash).estimate;
+		const seqIndex = hashes.indexOf(hash);
+		if(seqIndex < 0) {
+			return false;
+		}
+		for(var i = seqIndex + 1; i < hashes.length; i++) {
+			const futureHash = hashes[i];
+			const futureMsg = this.getMessage(futureHash);
+			if (futureMsg.estimate === estimate) {
+				return futureHash;
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * Given a message hash, search all justifications and see
+	 * if we know of a future message which disagrees with that 
+	 * justification. If we find any disagreeing future message for
+	 * any justification, return true.
+	 */
+	isAttackable(hash) {
+		const msg = this.getMessage(hash);
+		const attackable = msg.justification.reduce((acc, j) => {
+			const sender = this.getMessage(hash).sender;
+			const contradiction = this.findContradictingFutureMessage(
+				j,
+				this.getMessageSequence(sender)
+			);
+			return (contradiction || acc)
+		}, false);
+		
+	}
+
+	/*
+	 * Given an estimate, return a list of names of validators
+	 * (senders) who agree with the specified estimate.
+	 * Note: this does not test for estimate safety, it just
+	 * finds validators who's last estimate equals the given
+	 * estimate.
+	 */
+	findAgreeingValidators(estimate) {
+		return Object.keys(this.lastMsgHashes).reduce((acc, s) => {
+			const hash = this.lastMsgHashes[s];
+			if(this.getMessage(hash).estimate === estimate) {
+				acc.push(s);
+			}
+			return acc;
+		}, [])
+	}
+
+	findSafety() {
+		const estimate = this.getEstimate().estimate;
+		const agreeing = this.findAgreeingValidators(estimate);
+		const unattackable = agreeing.reduce((acc, s) => {
+			if(!this.isAttackable(this.lastMsgHashes[s])) {
+				acc.push(s);
+			}
+			return acc;
+		}, []);
+		return(unattackable);
+	}
+
 	getEstimate() {
 		// Gather all the latest messages into an array.
 		const msgs = this.getLatestMessages()

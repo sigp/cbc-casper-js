@@ -5,6 +5,7 @@ var validators = require("../validators")
 const BinaryValidator = validators.BinaryValidator;
 const IntegerValidator = validators.IntegerValidator;
 
+
 describe('Validator weighting', function() {
 	it('should learn about validators', function() {
 		let v = new BinaryValidator('Test', 0, 0);
