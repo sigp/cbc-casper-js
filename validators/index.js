@@ -326,19 +326,18 @@ class BinaryValidator extends Validator {
 	 * justification. If we find any disagreeing future message for
 	 * any justification, return true.
 	 */
-	isAttackable(hash) {
-		const msg = this.getMessage(hash);
-		const resolver = this.getMessage.bind(this);
+	isAttackable(hash, sequences, resolver) {
+		const msg = resolver(hash);
 		const attackable = msg.justification.reduce((acc, j) => {
-			const sender = this.getMessage(hash).sender;
+			const sender = resolver(j).sender;
 			const contradiction = this.findContradictingFutureMessage(
 				j,
-				this.getMessageSequence(sender),
+				sequences[sender],
 				resolver,
 			);
-			return (contradiction || acc)
+			return (contradiction !== false || acc)
 		}, false);
-		
+		return attackable;
 	}
 
 	/*
@@ -361,8 +360,14 @@ class BinaryValidator extends Validator {
 	findSafety() {
 		const estimate = this.getEstimate().estimate;
 		const agreeing = this.findAgreeingValidators(estimate);
+		const resolver = this.getMessage.bind(this);
 		const unattackable = agreeing.reduce((acc, s) => {
-			if(!this.isAttackable(this.lastMsgHashes[s])) {
+			const attackable = this.isAttackable(
+				this.lastMsgHashes[s], 
+				this.messageSequences,
+				resolver
+			)
+			if(!attackable) {
 				acc.push(s);
 			}
 			return acc;

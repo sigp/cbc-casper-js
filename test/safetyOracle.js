@@ -85,6 +85,75 @@ describe('Validator binary safety oracle', function() {
 			'it should find no contradicting hash after F'
 		);
 	});
+	
+	
+	it('should mark an simple attackable message as attackable', function() {
+		let v = new BinaryValidator('Test', 0, 0);
+		
+		const unattackableMsg = {
+			sender: 'Joe',
+			estimate: 0,
+			justification: [
+				'E'
+			]
+		}
+		const fullyAttackableMsg = {
+			sender: 'Joe',
+			estimate: 0,
+			justification: [
+				'B',
+			]
+		}
+		const partiallyAttackableMsg = {
+			sender: 'Joe',
+			estimate: 0,
+			justification: [
+				'B',
+				'E'
+			]
+		}
+
+		const sequence = [
+			'A',
+			'B',
+			'C',
+			'D',
+			'E',
+			'F',
+		]
+		const sequences = {
+			'Adam': sequence,
+			'Brenda': sequence,
+		}
+		const hashes = {
+			'safe': unattackableMsg,
+			'unsafe': fullyAttackableMsg,
+			'partial': partiallyAttackableMsg,
+			'A': { estimate: 0 },
+			'B': { estimate: 0, sender: 'Adam' },
+			'C': { estimate: 0 },
+			'D': { estimate: 1 },
+			'E': { estimate: 0, sender: 'Brenda' },
+			'F': { estimate: 0 },
+		}
+		const resolver = h => hashes[h];
+		
+		assert.equal(
+			v.isAttackable('safe', sequences, resolver),
+			false,
+			'the safe message should be unattackable'
+		);
+		assert.equal(
+			v.isAttackable('unsafe', sequences, resolver),
+			true,
+			'the unsafe message should be attackable'
+		);
+		assert.equal(
+			v.isAttackable('partial', sequences, resolver),
+			true,
+			'the partially safe message should be attackable'
+		);
+	});
 
 });
 
