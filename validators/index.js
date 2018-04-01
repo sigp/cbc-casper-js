@@ -367,7 +367,6 @@ class BinaryValidator extends Validator {
 			}
 			return acc;
 		}, []);
-		console.log(unattackable)
 		const safeWeight = unattackable.reduce((acc, name) => {
 			return acc + this.getWeight(name);
 		}, 0);
