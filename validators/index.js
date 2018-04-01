@@ -304,16 +304,16 @@ class BinaryValidator extends Validator {
 	 * If a conflicting hash is found, return it. Otherwise,
 	 * return false.
 	 */
-	findContradictingFutureMessage(hash, hashes) {
-		const estimate = this.getMessage(hash).estimate;
+	findContradictingFutureMessage(hash, hashes, resolver) {
+		const estimate = resolver(hash).estimate;
 		const seqIndex = hashes.indexOf(hash);
 		if(seqIndex < 0) {
 			return false;
 		}
 		for(var i = seqIndex + 1; i < hashes.length; i++) {
 			const futureHash = hashes[i];
-			const futureMsg = this.getMessage(futureHash);
-			if (futureMsg.estimate === estimate) {
+			const futureMsg = resolver(futureHash);
+			if (futureMsg.estimate !== estimate) {
 				return futureHash;
 			}
 		}
@@ -328,11 +328,13 @@ class BinaryValidator extends Validator {
 	 */
 	isAttackable(hash) {
 		const msg = this.getMessage(hash);
+		const resolver = this.getMessage.bind(this);
 		const attackable = msg.justification.reduce((acc, j) => {
 			const sender = this.getMessage(hash).sender;
 			const contradiction = this.findContradictingFutureMessage(
 				j,
-				this.getMessageSequence(sender)
+				this.getMessageSequence(sender),
+				resolver,
 			);
 			return (contradiction || acc)
 		}, false);
@@ -365,6 +367,7 @@ class BinaryValidator extends Validator {
 			}
 			return acc;
 		}, []);
+		console.log(unattackable)
 		const safeWeight = unattackable.reduce((acc, name) => {
 			return acc + this.getWeight(name);
 		}, 0);

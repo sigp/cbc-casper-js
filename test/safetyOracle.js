@@ -7,86 +7,84 @@ const IntegerValidator = validators.IntegerValidator;
 
 
 describe('Validator binary safety oracle', function() {
-	it('should be a test', function() {
+	
+	it('should find a contradicting future message', function() {
 		let v = new BinaryValidator('Test', 0, 0);
-		v.learnValidators([
-			{name: 'Graham', weight: 100},
-			{name: 'Brian', weight: 100},
-			{name: 'Fred', weight: 100},
-			{name: 'Eddy', weight: 100},
-			{name: 'Donna', weight: 100},
-			{name: 'Sally', weight: 100},
-		]);
 
-		const msg1 = {
-			sender: 'Graham',
-			estimate: 0,
-			justification: [
-				{
-					sender: 'Graham',
-					estimate: 0,
-					justification: []
-				},
-				{
-					sender: 'Brian',
-					estimate: 0,
-					justification: [
-						{
-							sender: 'Fred',
-							estimate: 0,
-							justification: [],
-						},
-						{
-							sender: 'Brian',
-							estimate: 0,
-							justification: [
-								{
-									sender: 'Eddy',
-									estimate: 0,
-									justification: [],
-								},
-								{
-									sender: 'Brian',
-									estimate: 0,
-									justification: [
-										{
-											sender: 'Donna',
-											estimate: 1,
-											justification: [],
-										},
-										{
-											sender: 'Brian',
-											estimate: 0,
-											justification: [
-												{
-													sender: 'Brian',
-													estimate: 0,
-													justification: [],
-												},
-												{
-													sender: 'Sally',
-													estimate: 1,
-													justification: [],
-												}
-											]
-										},
-									]
-								},
-							]
-						}
-					]
-				}
-			]
-		};
+		const sequence = [
+			'A',
+			'B',
+			'C',
+			'D',
+			'E',
+			'F',
+		]
+		const hashes = {
+			'A': { estimate: 0 },
+			'B': { estimate: 0 },
+			'C': { estimate: 0 },
+			'D': { estimate: 1 },
+			'E': { estimate: 0 },
+			'F': { estimate: 0 },
+		}
+		const resolver = h => hashes[h];
 
-		v.parseMessage(msg1);
-		assert.notEqual(
-			v.isByzantine["Brian"],
-			true,
-			"Brian should not be byzantine."
+		assert.equal(
+			v.findContradictingFutureMessage('A', sequence, resolver),
+			'D',
+			'it should find D as a contradicting hash to A'
 		);
-		console.log(v.getEstimate())
-		console.log(v.findSafety())
+		assert.equal(
+			v.findContradictingFutureMessage('B', sequence, resolver),
+			'D',
+			'it should find D as a contradicting hash to B'
+		);
+		assert.equal(
+			v.findContradictingFutureMessage('C', sequence, resolver),
+			'D',
+			'it should find D as a contradicting hash to C'
+		);
+		assert.equal(
+			v.findContradictingFutureMessage('D', sequence, resolver),
+			'E',
+			'it should find E as a contradicting hash to D'
+		);
 	});
+	
+	
+	it('should not find a contradicting future message when it does ' + 
+		'not exist', function() {
+		let v = new BinaryValidator('Test', 0, 0);
+
+		const sequence = [
+			'A',
+			'B',
+			'C',
+			'D',
+			'E',
+			'F',
+		]
+		const hashes = {
+			'A': { estimate: 0 },
+			'B': { estimate: 0 },
+			'C': { estimate: 0 },
+			'D': { estimate: 1 },
+			'E': { estimate: 0 },
+			'F': { estimate: 0 },
+		}
+		const resolver = h => hashes[h];
+
+		assert.equal(
+			v.findContradictingFutureMessage('E', sequence, resolver),
+			false,
+			'it should find no contradicting hash after E'
+		);
+		assert.equal(
+			v.findContradictingFutureMessage('F', sequence, resolver),
+			false,
+			'it should find no contradicting hash after F'
+		);
+	});
+
 });
 
