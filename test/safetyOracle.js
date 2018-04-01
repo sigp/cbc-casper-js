@@ -10,6 +10,7 @@ describe('Validator binary safety oracle', function() {
 	it('should be a test', function() {
 		let v = new BinaryValidator('Test', 0, 0);
 		v.learnValidators([
+			{name: 'Graham', weight: 100},
 			{name: 'Brian', weight: 100},
 			{name: 'Fred', weight: 100},
 			{name: 'Eddy', weight: 100},

@@ -365,7 +365,11 @@ class BinaryValidator extends Validator {
 			}
 			return acc;
 		}, []);
-		return(unattackable);
+		const safeWeight = unattackable.reduce((acc, name) => {
+			return acc + this.getWeight(name);
+		}, 0);
+		const totalWeight = this.getWeightSum();
+		return safeWeight / totalWeight;
 	}
 
 	getEstimate() {
