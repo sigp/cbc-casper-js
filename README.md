@@ -23,9 +23,10 @@ There are two distinct projects, both sharing the name "Casper".
  2. Casper the Friendly Finality Gadget (aka Casper FFG, "Vitalik's Casper)
 
 This project is implementing (1), Casper CBC. This project seeks to simulate
-a network of peers coming to consensus across a loosely-asynchronous network.
-Whilst it can detect faulty (Byzantine) behaviour, this project does implement 
-any "staking" logic (Vitalik's Casper FFG is more advanced in this area).
+a network of peers coming to consensus across a loosely-asynchronous network
+whilst tolerating some faulty behaviour. This project is not (at this stage)
+concerned with any economic incentive mechanisms (i.e., it does not implement
+staking).
 
 For more detail, see Jon Choi's "Ethereum Casper 101" (the "A Tale 
 of Two Caspers" section): 
