@@ -15,6 +15,22 @@ Ryan, Vlad Zamfir, Karl Floersch and others.
 is subject to significant change. This should only be the case for the next
 few weeks (i.e., until mid-April 2018).*
 
+## Casper: GHOST or finality gadget?
+
+There are two distinct projects, both sharing the name "Casper".
+
+ 1. Casper Correct-by-Construction (aka Casper CBC, "Vlad's Casper")
+ 2. Casper the Friendly Finality Gadget (aka Casper FFG, "Vitalik's Casper)
+
+This project is implementing (1), Casper CBC. This project seeks to simulate
+a network of peers coming to consensus across a loosely-asynchronous network.
+Whilst it can detect faulty (Byzantine) behaviour, this project does implement 
+any "staking" logic (Vitalik's Casper FFG is more advanced in this area).
+
+For more detail, see Jon Choi's "Ethereum Casper 101" (the "A Tale 
+of Two Caspers" section): 
+https://medium.com/@jonchoi/ethereum-casper-101-7a851a4f1eb0
+
 # Motivation
 
 The motivation for creating a new implemenation can be seen in the following:
