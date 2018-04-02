@@ -154,6 +154,81 @@ describe('Validator binary safety oracle', function() {
 			'the partially safe message should be attackable'
 		);
 	});
+	
+	
+	it('should return a valid safety ratio with absent validators', function() {
+		let v = new BinaryValidator('Test', 100, 0);
+
+		v.learnValidators([
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 100},
+			{name: 'Cam', weight: 100},
+			{name: 'Donna', weight: 100},
+			{name: 'Joe', weight: 100},
+		]);
+		
+		const brenda01 = {
+			sender: 'Brenda',
+			estimate: 0,
+			justification: []
+		}
+
+		const andy01 = {
+			sender: 'Andy',
+			estimate: 1,
+			justification: []
+		}
+		
+		const andy02 = {
+			sender: 'Andy',
+			estimate: 0,
+			justification: [
+				andy01,
+				brenda01
+			]
+		}
+
+		const cam01 = {
+			sender: 'Cam',
+			estimate: 1,
+			justification: []
+		}
+		
+		// Cam is now unsafe because if he were to be applied
+		// the `andy02` estimate, they would flip their 1 estimate
+		// to a 0.
+		const cam02 = {
+			sender: 'Cam',
+			estimate: 1,
+			justification: [
+				andy01
+			]
+		}
+
+		v.parseMessage(andy02);
+		v.parseMessage(cam02);
+
+		const safe = v.findSafeValidators(0);
+		
+		assert.equal(
+			safe.length,
+			2,
+			'only two validators should be safe'
+		);
+		assert(
+			safe.includes('Test'),
+			'Test should be safe'
+		);
+		assert(
+			safe.includes('Andy'),
+			'Andy should be safe'
+		);
+		assert.equal(
+			v.findSafety(0),
+			2/6,
+			'two of the six validators should be safe'
+		);
+	});
 
 });
 

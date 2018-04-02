@@ -357,11 +357,14 @@ class BinaryValidator extends Validator {
 		}, [])
 	}
 
-	findSafety() {
-		const estimate = this.getEstimate().estimate;
+	/*
+	 * Given an estimate, return a list of the names of all 
+	 * validators who are safe (i.e., unattackable).
+	 */
+	findSafeValidators(estimate) {
 		const agreeing = this.findAgreeingValidators(estimate);
 		const resolver = this.getMessage.bind(this);
-		const unattackable = agreeing.reduce((acc, s) => {
+		return agreeing.reduce((acc, s) => {
 			const attackable = this.isAttackable(
 				this.lastMsgHashes[s], 
 				this.messageSequences,
@@ -372,6 +375,16 @@ class BinaryValidator extends Validator {
 			}
 			return acc;
 		}, []);
+	}
+
+	/*
+	 * Given an estimate, return the ratio of the weights of all
+	 * validators who are safe vs. those who are not.
+	 *
+	 * If only half of validators are safe, this will return 0.5.
+	 */
+	findSafety(estimate) {
+		const unattackable = this.findSafeValidators(estimate)
 		const safeWeight = unattackable.reduce((acc, name) => {
 			return acc + this.getWeight(name);
 		}, 0);
@@ -404,7 +417,7 @@ class BinaryValidator extends Validator {
 		 * -----------------dividedBy--------------------
 		 *    the total sum of all validator weights
 		 */
-		const safety = totals[estimate] / this.getWeightSum();
+		const safety = this.findSafety(estimate);
 
 		return {
 			estimate,
