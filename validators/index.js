@@ -17,8 +17,6 @@ class Validator {
 		this.isByzantine = {};
 		this.weights = {};
 
-		this.weights[this.name] = weight;
-
 		/*
 		 * Add the starting point message to the hash table
 		 * and also record it as the latest message from this
@@ -26,12 +24,15 @@ class Validator {
 		 */
 		const msg = {
 			sender: this.name,
-			weight: this.getWeight(this.name),
 			estimate: startingPoint,
 			justification: [],
 		};
 		const msgHash = this.addToHashTable(msg, this.msgHashTable);
 		this.lastMsgHashes[this.name] = msgHash;
+		this.learnValidators([{
+			name: this.name,
+			weight: weight,
+		}]);
 	}
 
 	learnValidators(validators) {
