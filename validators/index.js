@@ -42,6 +42,10 @@ class Validator {
 		});
 	}
 
+	getValidators() {
+		return Object.keys(this.weights);
+	}
+
 	getWeight(who) {
 		return this.weights[who] ? this.weights[who] : 0;
 	}
