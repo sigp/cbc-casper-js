@@ -391,7 +391,6 @@ describe('Validator message generation', function() {
 		const msg = v.generateMessage();
 		const expectedMsg = {
 			sender: 'Test',
-			weight: 100,
 			estimate: 0,
 			justification: []
 		};
@@ -424,12 +423,10 @@ describe('Validator message generation', function() {
 		const generated = v.generateMessage();
 		const expected = {
 			sender: 'Test',
-			weight: 100,
 			estimate: 0,
 			justification: [
 				{
 					sender: 'Test',
-					weight: 100,
 					estimate: 0,
 					justification: []
 				},
