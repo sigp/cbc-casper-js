@@ -166,6 +166,8 @@ describe('Validator binary safety oracle', function() {
 			{name: 'Donna', weight: 100},
 			{name: 'Joe', weight: 100},
 		]);
+
+		const test01 = v.generateMessage();
 		
 		const brenda01 = {
 			sender: 'Brenda',
@@ -179,15 +181,6 @@ describe('Validator binary safety oracle', function() {
 			justification: []
 		}
 		
-		const andy02 = {
-			sender: 'Andy',
-			estimate: 0,
-			justification: [
-				andy01,
-				brenda01
-			]
-		}
-
 		const cam01 = {
 			sender: 'Cam',
 			estimate: 1,
@@ -204,9 +197,25 @@ describe('Validator binary safety oracle', function() {
 				andy01
 			]
 		}
+		
+		// Andy should be safe because they know everyones
+		// latest message.
+		const andy02 = {
+			sender: 'Andy',
+			estimate: 0,
+			justification: [
+				andy01,
+				brenda01,
+				cam01,
+				test01,
+			]
+		}
+
 
 		v.parseMessage(andy02);
 		v.parseMessage(cam02);
+
+		v.generateMessage();
 
 		const safe = v.findSafeValidators(0);
 		
