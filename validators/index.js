@@ -311,9 +311,6 @@ class BinaryValidator extends Validator {
 	findContradictingFutureMessage(hash, hashes, resolver) {
 		const estimate = resolver(hash).estimate;
 		const seqIndex = hashes.indexOf(hash);
-		if(seqIndex < 0) {
-			return false;
-		}
 		for(var i = seqIndex + 1; i < hashes.length; i++) {
 			const futureHash = hashes[i];
 			const futureMsg = resolver(futureHash);
@@ -322,6 +319,54 @@ class BinaryValidator extends Validator {
 			}
 		}
 		return false;
+	}
+
+	canSetMsgTo(estimate, hash, sequences, validators, 
+		latestMsgs, resolver) {
+		const msg = resolver(hash);
+		// load up msgs the latest msg from each sender
+		const msgs = msg.justification.reduce((acc, j) => {
+			const sender = resolver(j).sender
+			const contradiction = this.findContradictingFutureMessage(
+				j, 
+				sequences[sender], 
+				resolver
+			);
+			acc[sender] = contradiction ? contradiction : j;
+			return acc;
+		}, {});
+		// If there was a validator which was not included
+		// in the justifications of the given message, 
+		// set a message.
+		validators.forEach(v => {
+			if(v in msgs === false) {
+				let m = v in sequences ? sequences[v][0] : undefined;
+				if(m === undefined) {
+					m = {
+						sender: v,
+						estimate: estimate,
+						justification: []
+					}
+				}
+				msgs[v] = m;
+			}
+		});
+		// Build out the evil message
+		const justification = Object.keys(msgs).map(m => {
+			if(typeof msgs[m] === "string") {
+				// msg is hash
+				return resolver(msgs[m])
+			} else {
+				return msgs[m];
+			}
+		});
+		const evilMsg = {
+			sender: msg.sender,
+			estimate: this.getEstimateFromMsgs(justification),
+			justification,
+		}
+		const maliciousEstimate = this.getEstimateFromMsgs(justification);
+		return maliciousEstimate === estimate;
 	}
 
 	/*
@@ -369,10 +414,20 @@ class BinaryValidator extends Validator {
 		const agreeing = this.findAgreeingValidators(estimate);
 		const resolver = this.getMessage.bind(this);
 		return agreeing.reduce((acc, s) => {
+			/*
 			const attackable = this.isAttackable(
 				this.lastMsgHashes[s], 
 				this.messageSequences,
 				resolver
+			)
+			*/
+			const attackable = this.canSetMsgTo(
+				1 - estimate,
+				this.lastMsgHashes[s],
+				this.messageSequences,
+				this.getValidators(),
+				this.lastMsgHashes,
+				resolver,
 			)
 			if(!attackable) {
 				acc.push(s);
@@ -394,6 +449,14 @@ class BinaryValidator extends Validator {
 		}, 0);
 		const totalWeight = this.getWeightSum();
 		return safeWeight / totalWeight;
+	}
+
+	getEstimateFromMsgs(msgs) {
+		const totals = msgs.reduce((totals, msg) => {
+			totals[msg.estimate] += this.getWeight(msg.sender);
+			return totals;
+		}, [0, 0]);
+		return totals[1] > totals[0] ? 1 : 0;
 	}
 
 	getEstimate() {
@@ -421,7 +484,8 @@ class BinaryValidator extends Validator {
 		 * -----------------dividedBy--------------------
 		 *    the total sum of all validator weights
 		 */
-		const safety = this.findSafety(estimate);
+		//const safety = this.findSafety(estimate);
+		const safety = 42; // TODO: fix this
 
 		return {
 			estimate,
