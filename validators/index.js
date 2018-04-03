@@ -141,8 +141,7 @@ class Validator {
 			estimate: this.getEstimate(latestMsgs).estimate,
 			justification: latestMsgs,
 		}
-		const msgHash = this.addToHashTable(msg, this.msgHashTable);
-		this.lastMsgHashes[this.name] = msgHash;
+		this.verifyAndStore(msg);
 		return msg;
 	}
 
