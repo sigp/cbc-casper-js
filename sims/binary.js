@@ -65,7 +65,11 @@ class Simulator {
 		}
 
 		const decisions = this.validators.reduce((acc, v) => {
-			acc[v.name] = v.getEstimate();
+			const estimate = v.getEstimate();
+			acc[v.name] = {
+				estimate,
+				safety: v.findSafety(estimate)
+			}
 			return acc;
 		}, {})
 
