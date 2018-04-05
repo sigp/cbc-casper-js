@@ -94,21 +94,25 @@ time with random message propagation.
 - `-m 1`: Each round there will be only 1 message sent between validators.
 
 ```
-$ ./casper.js random -n 3 -s 0.5 -m 1
+$ ./casper.js random -n 3 -s 0.66667 -m 1
 { decisions: 
-   { '0': { estimate: 1, safety: 0.6666666666666666 },
-     '1': { estimate: 1, safety: 1 },
-     '2': { estimate: 1, safety: 1 } },
+   { '0': { estimate: 0, safe: true, safety: 1 },
+     '1': { estimate: 0, safe: true, safety: 1 },
+     '2': { estimate: 0, safe: true, safety: 1 } },
   initialConfig: 
    [ { name: '0', weight: 100, startingPoint: 1 },
-     { name: '1', weight: 100, startingPoint: 1 },
-     { name: '2', weight: 100, startingPoint: 1 } ],
+     { name: '1', weight: 100, startingPoint: 0 },
+     { name: '2', weight: 100, startingPoint: 0 } ],
   log: 
-   [ { msg: [Object], to: '0', from: '1', timestamp: 1521979672020 },
-     { msg: [Object], to: '1', from: '2', timestamp: 1521979672021 },
-     { msg: [Object], to: '1', from: '2', timestamp: 1521979672021 },
-     { msg: [Object], to: '1', from: '0', timestamp: 1521979672021 },
-     { msg: [Object], to: '2', from: '0', timestamp: 1521979672022 } ] }
+   [ { msg: [Object], to: '2', from: '1', timestamp: 1522907141441 },
+     { msg: [Object], to: '2', from: '1', timestamp: 1522907141442 },
+     { msg: [Object], to: '1', from: '2', timestamp: 1522907141443 },
+     { msg: [Object], to: '0', from: '2', timestamp: 1522907141444 },
+     { msg: [Object], to: '1', from: '2', timestamp: 1522907141447 },
+     { msg: [Object], to: '1', from: '2', timestamp: 1522907141449 },
+     { msg: [Object], to: '0', from: '1', timestamp: 1522907141453 },
+     { msg: [Object], to: '2', from: '0', timestamp: 1522907141458 },
+     { msg: [Object], to: '1', from: '2', timestamp: 1522907141466 } ] }
 ```
 
 ## Tests
