@@ -393,13 +393,6 @@ class BinaryValidator extends Validator {
 		const agreeing = this.findAgreeingValidators(estimate);
 		const resolver = this.getMessage.bind(this);
 		return agreeing.reduce((acc, s) => {
-			/*
-			const attackable = this.isAttackable(
-				this.lastMsgHashes[s], 
-				this.messageSequences,
-				resolver
-			)
-			*/
 			const attackable = this.canSetMsgTo(
 				1 - estimate,
 				this.lastMsgHashes[s],
