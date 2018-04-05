@@ -130,10 +130,10 @@ Any validator which defies these rules will be flagged as Byzantine.
 
 # Roadmap
 
-- [ ] Binary Consensus
+- [x] Binary Consensus
   - [x] Estimator
   - [x] Byzantine Fault Detection
-  - [ ] Safety Oracle
+  - [x] Safety Oracle
   - [x] Command-line simulator
 - [ ] Integer Consensus
   - [x] Estimator
