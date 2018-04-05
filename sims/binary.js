@@ -58,7 +58,7 @@ class Simulator {
 			this.doRound(this.messagesPerRound);
 			consensusAchieved = true;
 			this.validators.forEach(v => {
-				if(v.getEstimate().safety <= this.requiredSafetyRatio) {
+				if(v.findSafety(v.getEstimate()) <= this.requiredSafetyRatio) {
 					consensusAchieved = false;
 				}
 			});
