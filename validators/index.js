@@ -370,26 +370,6 @@ class BinaryValidator extends Validator {
 	}
 
 	/*
-	 * Given a message hash, search all justifications and see
-	 * if we know of a future message which disagrees with that 
-	 * justification. If we find any disagreeing future message for
-	 * any justification, return true.
-	 */
-	isAttackable(hash, sequences, resolver) {
-		const msg = resolver(hash);
-		const attackable = msg.justification.reduce((acc, j) => {
-			const sender = resolver(j).sender;
-			const contradiction = this.findContradictingFutureMessage(
-				j,
-				sequences[sender],
-				resolver,
-			);
-			return (contradiction !== false || acc)
-		}, false);
-		return attackable;
-	}
-
-	/*
 	 * Given an estimate, return a list of names of validators
 	 * (senders) who agree with the specified estimate.
 	 * Note: this does not test for estimate safety, it just
