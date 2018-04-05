@@ -137,7 +137,6 @@ class Validator {
 		 */
 		const msg = {
 			sender: this.name,
-			weight: this.getWeight(this.name),
 			estimate: this.getEstimate(latestMsgs),
 			justification: latestMsgs,
 		}
