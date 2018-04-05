@@ -18,6 +18,8 @@ describe('Validator binary safety oracle', function() {
 	
 	it('should return a valid safety ratio with all validators agreeing and full message propagation', function() {
 		const estimate = 0;
+		const notEstimate = 1;
+
 		let v = new BinaryValidator('Test', 100, estimate);
 
 		const validators = [
@@ -36,24 +38,71 @@ describe('Validator binary safety oracle', function() {
 		v.learnValidators(validators);
 		v.parseMessage(msg);
 
-		const safe = v.findSafeValidators(0);
+		const withSafe = v.findSafeValidators(estimate);
+		const againstSafe = v.findSafeValidators(notEstimate);
 		
 		assert.equal(
-			safe.length,
+			withSafe.length,
 			6,
-			'six validators should be safe'
+			'six validators should be safe on estimate'
 		);
-
+		assert.equal(
+			againstSafe.length,
+			0,
+			'no validators should be safe on notEstimate'
+		);
 		validators.forEach(v => {
 			assert(
-				safe.includes(v.name),
+				withSafe.includes(v.name),
 				'each validator should be considered safe'
 			);
 		});
 		assert.equal(
-			v.findSafety(0),
+			v.findSafety(estimate),
 			1,
-			'all validators should be safe on 0'
+			'all validators should be safe on estimate'
+		);
+		assert.equal(
+			v.findSafety(notEstimate),
+			0,
+			'no validators should be safe on notEstimate'
+		);
+	});
+	
+	
+	it('should return zero for all estimates with no messages received', function() {
+		const estimate = 0;
+		const notEstimate = 1;
+		let v = new BinaryValidator('Test', 100, estimate);
+
+		const validators = [
+			{name: 'Test', weight: 100},
+			{name: 'Andy', weight: 100},
+			{name: 'Brenda', weight: 100},
+			{name: 'Cam', weight: 100},
+			{name: 'Donna', weight: 100},
+			{name: 'Joe', weight: 100},
+		];
+
+		v.learnValidators(validators);
+
+		const withSafe = v.findSafeValidators(estimate);
+		const againstSafe = v.findSafeValidators(notEstimate);
+		
+		assert.equal(
+			withSafe.length,
+			0,
+			'no validators should be safe on estimate'
+		);
+		assert.equal(
+			againstSafe.length,
+			0,
+			'no validators should be safe on notEstimate'
+		);
+		assert.equal(
+			v.findSafety(0),
+			0,
+			'no validators should be safe on 0'
 		);
 		assert.equal(
 			v.findSafety(1),
