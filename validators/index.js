@@ -161,10 +161,10 @@ class Validator {
 		const msgHash = this.addToHashTable(msg, table);
 
 		const recurse = function(hash) {
-			table[hash].justification.forEach(h => recurse(h));
 			// If we don't already have this message, then attempt to verify
 			// and store it if it passes.
 			if(!this.isMessageKnown(hash)){
+				table[hash].justification.forEach(h => recurse(h));
 				const isLatest = this.verifyMessage(
 					this.decompressFromHashTable(hash, table)
 				);
