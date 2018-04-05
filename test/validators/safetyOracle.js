@@ -1,6 +1,6 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../validators")
+var validators = require("../../validators")
 
 const BinaryValidator = validators.BinaryValidator;
 const IntegerValidator = validators.IntegerValidator;
