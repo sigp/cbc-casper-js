@@ -87,9 +87,10 @@ and use a bunch of RAM. Simulate with caution._
 The following example is running a simulation with the following attributes:
 
 - `-n 3`: Three validators will form consensus.
-- `-s 0.5`: Each validator must see an e-clique with a weight of greater than half
-  of the total validator weight before the sim will end. Put simpler, each 
-  validator must see more than half of the other validators agreeing with them.
+- `-s 0.5`: The simulation will end once at least half (0.5) of validators consider
+  themselves safe with half (0.5) the other validators. We do not wait for
+*all* validators to get to target safety because this can take a very long
+time with random message propagation.
 - `-m 1`: Each round there will be only 1 message sent between validators.
 
 ```

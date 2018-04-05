@@ -5,6 +5,7 @@ class Simulator {
 	constructor(validatorCount, requiredSafetyRatio, messagesPerRound) {
 		this.validatorCount = validatorCount;
 		this.requiredSafetyRatio = requiredSafetyRatio;
+		this.safeValidatorRatio = requiredSafetyRatio;
 		this.messagesPerRound = messagesPerRound;
 
 		this.validatorInfo = [];
@@ -56,19 +57,21 @@ class Simulator {
 		let consensusAchieved = false;
 		while(consensusAchieved === false) {
 			this.doRound(this.messagesPerRound);
-			consensusAchieved = true;
-			this.validators.forEach(v => {
-				if(v.findSafety(v.getEstimate()) <= this.requiredSafetyRatio) {
-					consensusAchieved = false;
-				}
-			});
+			const satisfied = this.validators.reduce((acc, v) => {
+				const safety = v.findSafety(v.getEstimate());
+				return (safety >= this.requiredSafetyRatio) ? ++acc : acc;
+			}, 0);
+			const overallRatio = satisfied > 0 ?  satisfied / this.validatorCount: 0;
+			consensusAchieved = overallRatio >= this.safeValidatorRatio;
 		}
 
 		const decisions = this.validators.reduce((acc, v) => {
 			const estimate = v.getEstimate();
+			const safety = v.findSafety(estimate);
 			acc[v.name] = {
 				estimate,
-				safety: v.findSafety(estimate)
+				safe: safety >= this.requiredSafetyRatio,
+				safety
 			}
 			return acc;
 		}, {})
