@@ -138,7 +138,7 @@ class Validator {
 		const msg = {
 			sender: this.name,
 			weight: this.getWeight(this.name),
-			estimate: this.getEstimate(latestMsgs).estimate,
+			estimate: this.getEstimate(latestMsgs),
 			justification: latestMsgs,
 		}
 		this.verifyAndStore(msg);
@@ -207,7 +207,7 @@ class Validator {
 		 * justifications (i.e., don't recurse).
 		 */
 		if(msg.justification.length > 0) {
-			const estimate = this.getEstimate(msg.justification).estimate;
+			const estimate = this.getEstimate(msg.justification);
 			if(estimate !== msg.estimate) {
 				this.flagAsByzantine(msg.sender);
 				throw new ByzantineError("The estimate was incorrect.");
@@ -455,22 +455,7 @@ class BinaryValidator extends Validator {
 		 * E(M) = 1 if Score(1, M) > Score(0, M)
 		 * E(M) = 0 if Score(1, M) = Score(0, M)
 		 */
-		const estimate = totals[1] > totals[0] ? 1 : 0;
-		/*
-		 * The safety of the estimate is expressed as a ratio
-		 * of:
-		 *
-		 * the sum of the weights applied to an estimate
-		 * -----------------dividedBy--------------------
-		 *    the total sum of all validator weights
-		 */
-		//const safety = this.findSafety(estimate);
-		const safety = 42; // TODO: fix this
-
-		return {
-			estimate,
-			safety
-		}
+		return  totals[1] > totals[0] ? 1 : 0;
 	}
 }
 module.exports.BinaryValidator = BinaryValidator;

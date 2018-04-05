@@ -23,7 +23,7 @@ describe('Validator binary estimation', function() {
 			justification: []
 		});
 		assert(
-			v.getEstimate().estimate === 1, 
+			v.getEstimate() === 1, 
 			"estimate should return 1"
 		);
 	});
@@ -45,7 +45,7 @@ describe('Validator binary estimation', function() {
 			justification: []
 		});
 		assert(
-			v.getEstimate().estimate === 0 , 
+			v.getEstimate() === 0 , 
 			"estimate should return 0"
 		);
 	});
@@ -67,7 +67,7 @@ describe('Validator binary estimation', function() {
 			justification: []
 		});
 		assert(
-			v.getEstimate().estimate === 0, 
+			v.getEstimate() === 0, 
 			"estimate should return 0 "
 		);
 	});

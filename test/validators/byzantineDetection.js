@@ -447,7 +447,7 @@ describe('Validator Byzantine detection', function() {
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		const err = v.parseMessage(msg2);
+		v.parseMessage(msg2);
 		assert.equal(
 			v.lastMsgHashFrom('Graham'),
 			v.addToHashTable(msg1, {}), 
