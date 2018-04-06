@@ -1,15 +1,13 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../../validators")
-
-const BinaryValidator = validators.BinaryValidator;
+var BinaryValidator = require("../../validators/binary")
 
 
 describe('Validator message generation', function() {
 
 	it('should generate a starting point message', function() {
 		let v = new BinaryValidator('Test', 100, 0)
-		const msg = v.generateMessage();
+		const msg = v.generateMsg();
 		const expectedMsg = {
 			sender: 'Test',
 			estimate: 0,
@@ -40,8 +38,8 @@ describe('Validator message generation', function() {
 			],
 		};
 		let v = new BinaryValidator('Test', 100, 0);
-		v.parseMessage(msg);
-		const generated = v.generateMessage();
+		v.parseMsg(msg);
+		const generated = v.generateMsg();
 		const expected = {
 			sender: 'Test',
 			estimate: 0,

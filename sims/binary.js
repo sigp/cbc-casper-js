@@ -43,12 +43,12 @@ class Simulator {
 			let candidates = this.validators.map((_, i) => i);
 			const to = this.validators[this.popRandomElement(candidates)];
 			const from = this.validators[this.popRandomElement(candidates)];
-			this.network.send(from.generateMessage(), from.name, to.name);
+			this.network.send(from.generateMsg(), from.name, to.name);
 		}
 		// Receive messages
 		this.validators.forEach(v => {
 			this.network.receive(v.name).forEach(packet => {
-				v.parseMessage(packet.msg);
+				v.parseMsg(packet.msg);
 			});
 		});
 	}

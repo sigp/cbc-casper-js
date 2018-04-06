@@ -1,8 +1,6 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../../validators")
-
-const BinaryValidator = validators.BinaryValidator;
+var BinaryValidator = require("../../validators/binary")
 
 
 describe('Validator binary estimation', function() {
@@ -12,12 +10,12 @@ describe('Validator binary estimation', function() {
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 99},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 1,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 1,
 			justification: []
@@ -34,12 +32,12 @@ describe('Validator binary estimation', function() {
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 99},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 0,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 0,
 			justification: []
@@ -56,12 +54,12 @@ describe('Validator binary estimation', function() {
 			{name: 'Andy', weight: 5},
 			{name: 'Brenda', weight: 5},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 1,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 0,
 			justification: []

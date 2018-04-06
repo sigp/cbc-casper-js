@@ -1,8 +1,6 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../../validators")
-
-const BinaryValidator = validators.BinaryValidator;
+var BinaryValidator = require("../../validators/binary")
 
 
 describe('Validator message processing', function() {
@@ -14,10 +12,10 @@ describe('Validator message processing', function() {
 			justification: [],
 		}
 		let v = new BinaryValidator('Test', 0, 0);
-		v.parseMessage(msg);
+		v.parseMsg(msg);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg, {}), 
 			'the sent message should be the latest messsage.'
 		);
 	});
@@ -46,17 +44,17 @@ describe('Validator message processing', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		v.parseMessage(msg2);
+		v.parseMsg(msg2);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg2, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg2, {}), 
 			'the latest message should have been updated.'
 		);
 	});
@@ -85,17 +83,17 @@ describe('Validator message processing', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the most recent message
-		v.parseMessage(msg2);
+		v.parseMsg(msg2);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg2, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg2, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse a dependency of the previous message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg2, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg2, {}), 
 			'the latest message should not have been updated.'
 		);
 	});

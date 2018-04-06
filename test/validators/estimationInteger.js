@@ -1,8 +1,6 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../../validators")
-
-const IntegerValidator = validators.IntegerValidator;
+var IntegerValidator = require("../../validators/integer")
 
 
 describe('Validator integer estimation', function() {
@@ -13,12 +11,12 @@ describe('Validator integer estimation', function() {
 			{name: 'Andy', weight: 100},
 			{name: 'Brenda', weight: 100},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 5,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 5,
 			justification: []
@@ -42,12 +40,12 @@ describe('Validator integer estimation', function() {
 			{name: 'Brenda', weight: 100},
 			{name: 'Zebra', weight: 100},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 5,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 5,
 			justification: []
@@ -73,22 +71,22 @@ describe('Validator integer estimation', function() {
 			{name: 'Catherine', weight: 100},
 			{name: 'Dave', weight: 100},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 1,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 2,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Catherine',
 			estimate: 3,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Dave',
 			estimate: 4,
 			justification: []
@@ -115,27 +113,27 @@ describe('Validator integer estimation', function() {
 			{name: 'Dave', weight: 100},
 			{name: 'Eddy', weight: 100},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 1,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 2,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Catherine',
 			estimate: 3,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Dave',
 			estimate: 4,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Eddy',
 			estimate: 5,
 			justification: []
@@ -161,22 +159,22 @@ describe('Validator integer estimation', function() {
 			{name: 'Catherine', weight:150},
 			{name: 'Dave', weight: 301},
 		]);
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Andy',
 			estimate: 1,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Brenda',
 			estimate: 2,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Catherine',
 			estimate: 3,
 			justification: []
 		});
-		v.parseMessage({
+		v.parseMsg({
 			sender: 'Dave',
 			estimate: 4,
 			justification: []

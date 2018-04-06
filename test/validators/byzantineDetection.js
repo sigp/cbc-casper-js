@@ -1,8 +1,6 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../../validators")
-
-const BinaryValidator = validators.BinaryValidator;
+var BinaryValidator = require("../../validators/binary")
 
 
 describe('Validator Byzantine detection', function() {
@@ -32,17 +30,17 @@ describe('Validator Byzantine detection', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		v.parseMessage(msg2);
+		v.parseMsg(msg2);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the message was invalid and should not become the latest message.'
 		);
 		// Brian should be flagged as Byzantine
@@ -73,17 +71,17 @@ describe('Validator Byzantine detection', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		v.parseMessage(msg2);
+		v.parseMsg(msg2);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the message was invalid and should not become the latest message.'
 		);
 		// Brian should be flagged as Byzantine
@@ -121,20 +119,20 @@ describe('Validator Byzantine detection', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		v.parseMessage(msg2);
+		v.parseMsg(msg2);
 		// Brian should be flagged as Byzantine
 		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 		// the message should have been ignored
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the message was invalid and should not have become ' + 
 			'the latest messsage.'
 		);
@@ -177,26 +175,26 @@ describe('Validator Byzantine detection', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		v.parseMessage(msg2);
+		v.parseMsg(msg2);
 		// Brian should be flagged as Byzantine
 		assert(v.isByzantine['Sally'], 'Sally should be Byzantine')
 		// Brian's message should have been ignored
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the message was invalid and should not have become ' + 
 			'the latest messsage.'
 		);
 		// Sallys's message should have been ignored
 		assert.equal(
-			v.lastMsgHashFrom('Sally'),
+			v.getLatestMsgHash('Sally'),
 			undefined, 
 			'Sallys message was Byzantine and should not have been stored '		
 		);
@@ -303,17 +301,17 @@ describe('Validator Byzantine detection', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		const err = v.parseMessage(msg2);
+		const err = v.parseMsg(msg2);
 		assert.equal(
-			v.lastMsgHashFrom('Brian'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Brian'),
+			v.storeMsg(msg1, {}), 
 			'the message was invalid and should not become the latest message.'
 		);
 		// Brian should be flagged as Byzantine
@@ -440,17 +438,17 @@ describe('Validator Byzantine detection', function() {
 		};
 		let v = new BinaryValidator('Test', 0, 0);
 		// parse the first message
-		v.parseMessage(msg1);
+		v.parseMsg(msg1);
 		assert.equal(
-			v.lastMsgHashFrom('Graham'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Graham'),
+			v.storeMsg(msg1, {}), 
 			'the sent message should be the latest messsage.'
 		);
 		// parse the second message
-		v.parseMessage(msg2);
+		v.parseMsg(msg2);
 		assert.equal(
-			v.lastMsgHashFrom('Graham'),
-			v.addToHashTable(msg1, {}), 
+			v.getLatestMsgHash('Graham'),
+			v.storeMsg(msg1, {}), 
 			'the message was invalid and should not become the latest message.'
 		);
 		// Brian should be flagged as Byzantine

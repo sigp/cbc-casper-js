@@ -1,11 +1,9 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../../validators")
-
-const BinaryValidator = validators.BinaryValidator;
+var MsgDB = require("../db")
 
 
-describe('Validator message storage', function() {
+describe('MsgDB hash table storage', function() {
 	
 	it('should compress messages into a hash table, then decompress out', function() {
 		const nested = {
@@ -48,11 +46,10 @@ describe('Validator message storage', function() {
 			],
 		}
 
-		let v = new BinaryValidator('Test', 100, 0);
-		let table = {};
-		const rootHash = v.addToHashTable(nested, table);
+		let db = new MsgDB();
+		const rootHash = db.store(nested);
 		
-		const expectedHashes = [
+		[
 			'cd7cccb36e65b3986074310a35a9fc3785e65975',
 			'f1144d1f236613ea8b93d2c2d3a659d1b3bd9600',
 			'8e553b03a8e774f48882c8eddcc1e6c07f2b2369',
@@ -60,19 +57,13 @@ describe('Validator message storage', function() {
 			'2ff4e9b5bb3d37a41b96765ea74820287ff21a6c',
 			'fbf00829dbe434d636653b79b891edd4669a4613',
 			'561e727fb018ed79139e49ab8c684250fc101155',
-		]
-		for(i in expectedHashes) {
-			assert(
-				table[expectedHashes[i]] !== undefined, 
-				'an expected hash was not found in the hash table' 
-			);
-		}
-		const decompressed = v.decompressFromHashTable(rootHash, table);
+		].forEach(h => assert(db.exists(h), `${h} was not found in hashtable.`))
+
+		const decompressed = db.decompress(rootHash);
 		assert.equal(
 			hashObj(decompressed),
 			hashObj(nested),
 			'the nested object did not decompress correctly'
 		)
 	});
-
 });

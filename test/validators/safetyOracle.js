@@ -1,9 +1,6 @@
 var hashObj = require('object-hash');
 var assert = require("assert");
-var validators = require("../../validators")
-
-const BinaryValidator = validators.BinaryValidator;
-const IntegerValidator = validators.IntegerValidator;
+var BinaryValidator = require("../../validators/binary")
 
 const makeMsg = (sender, estimate, justification) => {
 	return {
@@ -36,7 +33,7 @@ describe('Validator binary safety oracle', function() {
 		const msg = makeMsg('Andy', estimate, msgs02);
 
 		v.learnValidators(validators);
-		v.parseMessage(msg);
+		v.parseMsg(msg);
 
 		const withSafe = v.findSafeValidators(estimate);
 		const againstSafe = v.findSafeValidators(notEstimate);
@@ -123,7 +120,7 @@ describe('Validator binary safety oracle', function() {
 			{name: 'Joe', weight: 100},
 		]);
 
-		const test01 = v.generateMessage();
+		const test01 = v.generateMsg();
 		
 		const brenda01 = {
 			sender: 'Brenda',
@@ -168,10 +165,10 @@ describe('Validator binary safety oracle', function() {
 		}
 
 
-		v.parseMessage(andy02);
-		v.parseMessage(cam02);
+		v.parseMsg(andy02);
+		v.parseMsg(cam02);
 
-		v.generateMessage();
+		v.generateMsg();
 
 		const safe = v.findSafeValidators(0);
 		
