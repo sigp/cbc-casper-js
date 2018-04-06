@@ -1,5 +1,5 @@
 var Network = require("../network").Network;
-var Validator = require("../validators").BinaryValidator;
+var Validator = require("../validators/binary");
 
 class Simulator {
 	constructor(validatorCount, requiredSafetyRatio, messagesPerRound) {
