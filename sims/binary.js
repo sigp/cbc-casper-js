@@ -53,16 +53,47 @@ class Simulator {
 		});
 	}
 
+	consensusAchieved(individualRatio, overallRatio) {
+		let result = false;
+		/*
+		 * safeValidators and unsafeValidators are actually "count-downs".
+		 *
+		 * I.e., if we get a safe validator, we minus 1 from safeValidators 
+		 * (and vice-versa). We're doing it this way so we can detect as soon
+		 * as posssible if it is impossible to reach the desired
+		 * overallRatio of safe validators, so we can stop the loop and not perform
+		 * unncecessary safety oracle calls.
+		 */
+		let safeValidators = Math.ceil(this.validatorCount * overallRatio);
+		let unsafeValidators = Math.ceil(this.validatorCount * (1 - overallRatio));
+		for(var i = 0; i < this.validatorCount; i++) {
+			const v = this.validators[i];
+			const e = v.getEstimate();
+			const s = v.findSafety(e);
+
+			if(s >= individualRatio) {
+				safeValidators--;
+			} else {
+				unsafeValidators--;
+			}
+
+			if (safeValidators <= 0) {
+				result = true;
+				break;
+			} 
+
+			if (unsafeValidators <= 0) {
+				result = false;
+				break;
+			}
+		}
+		return result;
+	}
+
 	simulate() {
 		let consensusAchieved = false;
-		while(consensusAchieved === false) {
+		while(this.consensusAchieved(this.requiredSafetyRatio, this.safeValidatorRatio) === false) {
 			this.doRound(this.messagesPerRound);
-			const satisfied = this.validators.reduce((acc, v) => {
-				const safety = v.findSafety(v.getEstimate());
-				return (safety >= this.requiredSafetyRatio) ? ++acc : acc;
-			}, 0);
-			const overallRatio = satisfied > 0 ?  satisfied / this.validatorCount: 0;
-			consensusAchieved = overallRatio >= this.safeValidatorRatio;
 		}
 
 		const decisions = this.validators.reduce((acc, v) => {
