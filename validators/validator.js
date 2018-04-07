@@ -141,7 +141,7 @@ class Validator {
 				justification: latestMsgs,
 			}
 		}
-		this.rootHash = this.verifyAndStore(msg);
+		this.verifyAndStore(msg);
 		return msg;
 	}
 
