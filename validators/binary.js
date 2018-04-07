@@ -131,18 +131,6 @@ class BinaryValidator extends Validator {
 			totals[msg.estimate] += this.getWeight(msg.sender);
 			return totals;
 		}, [0, 0]);
-		return totals[1] > totals[0] ? 1 : 0;
-	}
-
-	getEstimate() {
-		// Gather all the latest messages into an array.
-		const msgs = this.getLatestMsgs()
-		// Reduce the latest messages into a tally of votes
-		// and weights per validator.
-		const totals = msgs.reduce((totals, msg) => {
-			totals[msg.estimate] += this.getWeight(msg.sender);
-			return totals;
-		}, [0, 0]);
 		/*
 		 * Calculate the binary estimate as per CasperTFG paper:
 		 *
@@ -150,7 +138,11 @@ class BinaryValidator extends Validator {
 		 * E(M) = 1 if Score(1, M) > Score(0, M)
 		 * E(M) = 0 if Score(1, M) = Score(0, M)
 		 */
-		return  totals[1] > totals[0] ? 1 : 0;
+		return totals[1] > totals[0] ? 1 : 0;
+	}
+
+	getEstimate() {
+		return this.getEstimateFromMsgs(this.getLatestMsgs());
 	}
 }
 module.exports = BinaryValidator;
