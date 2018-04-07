@@ -214,7 +214,7 @@ class Validator {
 		 * justifications (i.e., don't recurse).
 		 */
 		if(msg.justification.length > 0) {
-			const estimate = this.getEstimate(msg.justification);
+			const estimate = this.getEstimateFromMsgs(msg.justification);
 			if(estimate !== msg.estimate) {
 				this.flagAsByzantine(msg.sender);
 				throw new ByzantineError("The estimate was incorrect.");

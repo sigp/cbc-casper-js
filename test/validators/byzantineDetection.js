@@ -454,5 +454,34 @@ describe('Validator Byzantine detection', function() {
 		// Brian should be flagged as Byzantine
 		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
 	});
+	
+	it('should flag a sender as Byzantine if they provide an incorrect estimation.', function() {
+		const msg = {
+			sender: 'Brian',
+			estimate: 1,
+			justification: [
+				{
+					sender: 'Zebra',
+					estimate: 0,		
+					justification: [],
+				},
+				{
+					sender: 'Sally',
+					estimate: 0,
+					justification: [],
+				},
+				{
+					sender: 'Brian',
+					estimate: 1,
+					justification: [],
+				}
+			],
+		};
+		let v = new BinaryValidator('Test', 0, 0);
+		// parse the first message
+		v.parseMsg(msg);
+		// Brian should be flagged as Byzantine
+		assert(v.isByzantine['Brian'], 'Brian should be Byzantine')
+	});
 
 });
