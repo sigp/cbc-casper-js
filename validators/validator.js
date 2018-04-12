@@ -18,6 +18,7 @@ class Validator {
 		this.msgSequences = {};
 		this.isByzantine = {};
 		this.weights = {};
+		this.msgStateSafety = {};
 		this.db = new MsgDB();
 
 		// Create an initial msg, store it and save it as our latest msg.
@@ -119,6 +120,50 @@ class Validator {
 		return Object.values(this.lastMsgHashes).map(h => this.decompressHash(h))
 	}
 
+	/*
+	 * We use this hash to determine if our message set has changed.
+	 * It should only change if we have new information in the latest
+	 * messages of other validators.
+	 */
+	getMessageStateHash() {
+		return hashObj(this.lastMsgHashes);
+	}
+
+	getCurrentMessageStateSafety(estimate) {
+		return this.getMessageStateSafety(
+			this.getMessageStateHash(),
+			estimate
+		);
+	}
+	
+	setCurrentMessageStateSafety(estimate, safety) {
+		return this.setMessageStateSafety(
+			this.getMessageStateHash(),
+			estimate,
+			safety
+		);
+	}
+	
+	setMessageStateSafety(stateHash, estimate, safety) {
+		if(this.getMessageStateSafety(stateHash, estimate) !== undefined)  {
+			throw new Error('Cannot set a new safety for a known state hash.')
+		}
+		if(stateHash === undefined)  {
+			throw new Error('stateHash cannot be undefined.')
+		}
+		if(!(stateHash in this.msgStateSafety)) {
+			this.msgStateSafety[stateHash] = {};
+		}
+		this.msgStateSafety[stateHash][estimate] = safety;
+	}
+	getMessageStateSafety(stateHash, estimate) {
+		if(stateHash in this.msgStateSafety) {
+			return this.msgStateSafety[stateHash][estimate]
+		} else {
+			return undefined;
+		}
+	}
+
 	getEstimate() {
 		throw new Error("The Validator class should not be used directly. " + 
 			"Use an extended class specific to your conensus requirements, " + 
@@ -137,7 +182,7 @@ class Validator {
 		else {
 			msg = {
 				sender: this.name,
-				estimate: this.getEstimate(latestMsgs),
+				estimate: this.getEstimateFromMsgs(latestMsgs),
 				justification: latestMsgs,
 			}
 		}
@@ -162,6 +207,7 @@ class Validator {
 		// with invalid msgs.
 		const localDb = new MsgDB();
 		const msgHash = localDb.store(msg);
+		const stateHash = this.getMessageStateHash();
 
 		const recurse = function(hash) {
 			// If we don't already have this message, then attempt to verify

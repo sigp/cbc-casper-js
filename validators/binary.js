@@ -1,7 +1,7 @@
 var Validator = require('./validator.js');
 
 class BinaryValidator extends Validator {
-
+	
 	/*
 	 * Given a message hash and a linear history of hashes,
 	 * locate the given hash in the history, then attempt to find
@@ -118,12 +118,20 @@ class BinaryValidator extends Validator {
 	 * If only half of validators are safe, this will return 0.5.
 	 */
 	findSafety(estimate) {
-		const unattackable = this.findSafeValidators(estimate)
-		const safeWeight = unattackable.reduce((acc, name) => {
-			return acc + this.getWeight(name);
-		}, 0);
-		const totalWeight = this.getWeightSum();
-		return safeWeight / totalWeight;
+		const memoizedSafety = this.getCurrentMessageStateSafety(estimate);
+		if(memoizedSafety !== undefined) {
+			return memoizedSafety;
+		}
+		else {
+			const unattackable = this.findSafeValidators(estimate)
+			const safeWeight = unattackable.reduce((acc, name) => {
+				return acc + this.getWeight(name);
+			}, 0);
+			const totalWeight = this.getWeightSum();
+			const safety = safeWeight / totalWeight;
+			this.setCurrentMessageStateSafety(estimate, safety);
+			return safety;
+		}
 	}
 
 	getEstimateFromMsgs(msgs) {
@@ -141,7 +149,7 @@ class BinaryValidator extends Validator {
 		return totals[1] > totals[0] ? 1 : 0;
 	}
 
-	getEstimate() {
+	getEstimate(bad) {
 		return this.getEstimateFromMsgs(this.getLatestMsgs());
 	}
 }
