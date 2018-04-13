@@ -32,6 +32,35 @@ describe('Network', function() {
 		assert(packet.timestamp > 0, 'packet should have some timestamp');
 	});
 	
+	it('should broadcast messages to all validators except sender', function() {
+		let validators = [
+			{name: 'Andy'},
+			{name: 'Brian'},
+			{name: 'Cara'},
+			{name: 'Donna'},
+		]
+		let n = new network.Network(validators);
+		const msg = {test: true};
+		// Broadcast msg
+		n.broadcast(msg, 'Andy');
+		// Test message receipt
+		validators.forEach(v => {
+			if(v.name === "Andy") {
+				assert(
+					n.receive(v.name).length === 0,
+					'Broadcaster should not receive own msg'
+				)
+			} 
+			else {
+				assert(
+					n.receive(v.name)[0].msg === msg,
+					'All non-sender validators should receive msg'
+				);
+
+			}
+		});
+	});
+	
 	
 	it('should put a message in the log during send', function() {
 		const validators = [

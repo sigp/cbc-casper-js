@@ -17,6 +17,14 @@ class Network {
 		return this.log;
 	}
 
+	broadcast(msg, from) {
+		this.validators.forEach(v => {
+			if(v.name !== from) {
+				this.send(msg, from, v.name);
+			}
+		});
+	}
+
 	send(msg, from, to) {
 		const d = new Date();
 
