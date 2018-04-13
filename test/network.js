@@ -1,5 +1,5 @@
 var assert = require("assert");
-var network = require("../network");
+var Network = require("../network");
 
 describe('Network', function() {
 
@@ -10,7 +10,7 @@ describe('Network', function() {
 			{name: 'Cara'},
 			{name: 'Donna'},
 		]
-		let n = new network.Network(validators);
+		let n = new Network(validators);
 	});
 
 	
@@ -22,7 +22,7 @@ describe('Network', function() {
 			{name: 'Donna'},
 		]
 		const msg = {test: true};
-		let n = new network.Network(validators);
+		let n = new Network(validators);
 		n.send(msg, 'Andy', 'Donna');
 		const rx = n.receive('Donna');
 		const packet = rx[0]	
@@ -39,7 +39,7 @@ describe('Network', function() {
 			{name: 'Cara'},
 			{name: 'Donna'},
 		]
-		let n = new network.Network(validators);
+		let n = new Network(validators);
 		const msg = {test: true};
 		// Broadcast msg
 		n.broadcast(msg, 'Andy');
@@ -70,7 +70,7 @@ describe('Network', function() {
 			{name: 'Donna'},
 		]
 		const msg = {test: true};
-		let n = new network.Network(validators);
+		let n = new Network(validators);
 		n.send(msg, 'Andy', 'Donna');
 		const rx = n.receive('Donna');
 		const packet = n.getLog()[0];
@@ -89,7 +89,7 @@ describe('Network', function() {
 			{name: 'Donna'},
 		]
 		const msg = {test: true};
-		let n = new network.Network(validators);
+		let n = new Network(validators);
 		n.send(msg, 'Andy', 'Donna');
 		let rx = n.receive('Donna');
 		assert(rx.length > 0, 'a message should have been received');
@@ -105,7 +105,7 @@ describe('Network', function() {
 			{name: 'Cara'},
 			{name: 'Donna'},
 		]
-		let n = new network.Network(validators);
+		let n = new Network(validators);
 		assert.throws(
 			() => n.send({}, 'Alice', 'Donna'),
 			ReferenceError,

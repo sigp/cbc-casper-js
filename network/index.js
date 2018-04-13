@@ -58,4 +58,4 @@ class Network {
 		return msgs;
 	}
 }
-module.exports.Network = Network;
+module.exports = Network;
