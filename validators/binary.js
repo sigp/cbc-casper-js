@@ -149,8 +149,10 @@ class BinaryValidator extends Validator {
 		return totals[1] > totals[0] ? 1 : 0;
 	}
 
-	getEstimate(bad) {
-		return this.getEstimateFromMsgs(this.getLatestMsgs());
+	getEstimate() {
+		return this.getEstimateFromMsgs(
+			this.getLatestMsgs().map(h => this.retrieveMsg(h))
+		);
 	}
 }
 module.exports = BinaryValidator;
