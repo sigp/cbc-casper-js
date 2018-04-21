@@ -246,9 +246,10 @@ class Validator {
 			);
 		}
 
+
 		// Get a linear history of the sender from this message
 		const seqs = this.getMsgHashSequenceForSender(msgHash, sender);
-		const knownSeqs = this.getMsgSequence(msgHash, sender);
+		const knownSeqs = this.getMsgSequence(sender);
 		const isLatest = (seqs.length > knownSeqs.length);
 		const equivocation = this.findEquivocation(knownSeqs, seqs);
 		if(equivocation) {
@@ -297,8 +298,10 @@ class Validator {
 			if(nextDep) { 
 				makeSeqs(nextDep, sender); 
 			}
-			else if (nextDep === undefined && this.retrieveMsg(hash).justification.length > 0) {
-				this.flagAsByzantine(msg.sender);
+			else if (nextDep === undefined 
+				&& this.retrieveMsg(hash).justification.length > 0) 
+			{
+				this.flagAsByzantine(this.getSender(msgHash));
 				throw new ByzantineError(
 					"The sender omitted their previous latest message  " +
 					"from the justification."
@@ -326,7 +329,6 @@ class Validator {
 		}
 		// Start checking the two histories for a fork (and also extend our
 		// currently known sequence if there are no forks)
-		const isLatestMsg = (seqs.length + index > knownSeqs.length);
 		for(var i = 0; i < seqs.length; i++) {
 			const knownSeqsIndex = i + index;
 			if(knownSeqsIndex >= knownSeqs.length) {
