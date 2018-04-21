@@ -3,11 +3,10 @@ var Validator = require("../validators/binary");
 var MsgDB = require("../db");
 
 class Simulator {
-	constructor(validatorCount, requiredSafetyRatio, messagesPerRound) {
+	constructor(validatorCount, requiredSafetyRatio) {
 		this.validatorCount = validatorCount;
 		this.requiredSafetyRatio = requiredSafetyRatio;
 		this.safeValidatorRatio = requiredSafetyRatio;
-		this.messagesPerRound = messagesPerRound;
 		this.db = new MsgDB();
 
 		this.validatorInfo = [];
@@ -121,9 +120,6 @@ class Simulator {
 				.reduce((sum, i) => sum + decisions[i].estimate, 0)
 				/ Object.keys(decisions).length
 		);
-
-		console.log(avgStartingPoint);
-		console.log(avgDecisionPoint);
 
 		const output = {
 			decisions,

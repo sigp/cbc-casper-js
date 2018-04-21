@@ -64,8 +64,7 @@ are randomised:
 
  - The initial estimate of the validators. I.e., if they choose to start with a 
    `0` or `1`.
- - The senders and recipients of messages for each round. (The number of messages
-   sent per round is specified by the `-m` flag.)
+ - The senders and recipients of messages for each round.
 
 In this binary simulation, there is no concept of "rounds". I.e., validators
 will not wait for some minimum threshold of votes before they issue a new
@@ -77,18 +76,16 @@ starting points `(0, 1, 1)` can come to consensus on the `0` value.
 The random sim will output a JSON object to console with the following
 properties:
 
- - `decisions`: The estimates and associated safety ratios for each validator,
-  as of simulation completion.
  - `initialConfig`: The starting values and weights for each validator. I.e.,
   what their states were before the consensus process started.
- - `log`: The full log of messages sent between validators during the consensus
-  process. At this stage the log is not printed in it's entirety for readability.
-   
-_Note: due to the random nature of this simulation, it can quite easily run for 
-very long times and generate very large messages. E.g., running a sim with 100
-validators and only 1 message per round is likely going to take a lot of time 
-and use a bunch of RAM. Simulate with caution._
+ - `decisions`: The estimates and associated safety ratios for each validator,
+  as of simulation completion.
+ - `majorityFlip`: `true` if the majority of validators decided upon the
+   average of all staring positions.
+ - `messageLogLength`: the number of messages which were sent whilst forming
+   consensus.
 
+   
 #### Example
 
 The following example is running a simulation with the following attributes:
@@ -98,29 +95,50 @@ The following example is running a simulation with the following attributes:
   themselves safe with half (0.5) the other validators. We do not wait for
 *all* validators to get to target safety because this can take a very long
 time with random message propagation.
-- `-m 1`: Each round there will be only 1 message sent between validators.
 
 ```
-$ ./casper.js random -n 3 -s 0.66667 -m 1
-{ decisions: 
-   { '0': { estimate: 0, safe: true, safety: 1 },
-     '1': { estimate: 0, safe: true, safety: 1 },
-     '2': { estimate: 0, safe: true, safety: 1 } },
-  initialConfig: 
-   [ { name: '0', weight: 100, startingPoint: 1 },
-     { name: '1', weight: 100, startingPoint: 0 },
-     { name: '2', weight: 100, startingPoint: 0 } ],
-  log: 
-   [ { msg: [Object], to: '2', from: '1', timestamp: 1522907141441 },
-     { msg: [Object], to: '2', from: '1', timestamp: 1522907141442 },
-     { msg: [Object], to: '1', from: '2', timestamp: 1522907141443 },
-     { msg: [Object], to: '0', from: '2', timestamp: 1522907141444 },
-     { msg: [Object], to: '1', from: '2', timestamp: 1522907141447 },
-     { msg: [Object], to: '1', from: '2', timestamp: 1522907141449 },
-     { msg: [Object], to: '0', from: '1', timestamp: 1522907141453 },
-     { msg: [Object], to: '2', from: '0', timestamp: 1522907141458 },
-     { msg: [Object], to: '1', from: '2', timestamp: 1522907141466 } ] }
+$ ./casper.js random -n 3
+{
+  "intialConfig": [
+    {
+      "name": "0",
+      "weight": 100,
+      "startingPoint": 1
+    },
+    {
+      "name": "1",
+      "weight": 100,
+      "startingPoint": 0
+    },
+    {
+      "name": "2",
+      "weight": 100,
+      "startingPoint": 0
+    }
+  ],
+  "decisions": {
+    "0": {
+      "estimate": 0,
+      "safe": true,
+      "safety": 1
+    },
+    "1": {
+      "estimate": 0,
+      "safe": true,
+      "safety": 0.6666666666666666
+    },
+    "2": {
+      "estimate": 0,
+      "safe": true,
+      "safety": 1
+    }
+  },
+  "majorityFlip": false,
+  "messageLogLength": 6
+}
 ```
+
+My laptop can comfortably run `./casper.js random -n 100` in about 5 seconds.
 
 ## Tests
 

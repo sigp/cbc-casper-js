@@ -29,15 +29,6 @@ random.addArgument(
 );
 
 random.addArgument(
-	[ '-m', '--messages-per-round' ],
-	{
-		defaultValue: 1,
-		type: 'int',
-		help: 'The number of messages which will be sent per round.'
-	}
-);
-
-random.addArgument(
 	[ '-s', '--safety-ratio' ],
 	{
 		defaultValue: 2/3,
@@ -53,7 +44,6 @@ if(args.sim === "random") {
 	let simulator = new binary.BinarySimulator(
 		args.validator_count,
 		args.safety_ratio,
-		args.messages_per_round
 	);
 	const result = simulator.simulate();
 	const output = {
