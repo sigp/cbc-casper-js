@@ -146,11 +146,13 @@ class Validator {
 	generateMsg() {
 		let hash = this.getLatestMsgHash(this.name);
 
-		const latestMsgs = this.getLatestMsgs();
-		if(latestMsgs.length > 1) {
+		const hashes = this.getLatestMsgHashes();
+		if(hashes.length > 1) {
 			hash = this.storeMsg({
 				sender: this.name,
-				estimate: this.getEstimateFromMsgs(latestMsgs),
+				estimate: this.getEstimateFromMsgs(hashes.map(
+					h => this.retrieveMsg(h)
+				)),
 				justification: this.getLatestMsgHashes()
 			});
 		}
@@ -183,7 +185,7 @@ class Validator {
 
 		const recurse = function(hash) {
 			depth++;
-			if(++depth >= 100) {
+			if(++depth >= Math.pow(10, 6)) {
 				throw new Error("Reached max depth.")
 			}
 			else if(this.isMsgHashTrusted(hash)){
@@ -268,11 +270,11 @@ class Validator {
 
 	justificationEstimateIsValid(justification, estimate) {
 		if(justification.length > 0) {
-			return estimate === this.getEstimateFromMsgs(
+			const generated = this.getEstimateFromMsgs(
 				justification.map(j => this.retrieveMsg(j))
 			);
-		} 
-		else {
+			return estimate === generated;
+		} else {
 			// An estimate is always valid with no justifications
 			return true;
 		}

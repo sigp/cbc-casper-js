@@ -1,5 +1,6 @@
-var Network = require("../network").Network;
+var Network = require("../network");
 var Validator = require("../validators/binary");
+var MsgDB = require("../db");
 
 class Simulator {
 	constructor(validatorCount, requiredSafetyRatio, messagesPerRound) {
@@ -7,6 +8,7 @@ class Simulator {
 		this.requiredSafetyRatio = requiredSafetyRatio;
 		this.safeValidatorRatio = requiredSafetyRatio;
 		this.messagesPerRound = messagesPerRound;
+		this.db = new MsgDB();
 
 		this.validatorInfo = [];
 		for(var i = 0; i < this.validatorCount; i++) {
@@ -21,6 +23,7 @@ class Simulator {
 				v.name,
 				v.weight,
 				v.startingPoint,
+				this.db
 			);
 		});
 		this.validators.forEach(v => v.learnValidators(this.validatorInfo));
