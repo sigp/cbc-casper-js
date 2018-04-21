@@ -28,6 +28,11 @@ class Simulator {
 		});
 		this.validators.forEach(v => v.learnValidators(this.validatorInfo));
 		this.network = new Network(this.validators);
+
+		this.safety = this.validators.reduce((acc, v) => {
+			acc[v.name] = 0;
+			return acc;
+		}, {});
 	}
 
 	getStartingPoint() {
@@ -39,21 +44,20 @@ class Simulator {
 		a.splice(i, 1);
 		return i;
 	}
-	
-	doRound(messages) {
-		// Send messages
-		for(var i = 0; i < messages; i++) {
-			let candidates = this.validators.map((_, i) => i);
-			const to = this.validators[this.popRandomElement(candidates)];
-			const from = this.validators[this.popRandomElement(candidates)];
-			this.network.send(from.generateMsg(), from.name, to.name);
-		}
-		// Receive messages
-		this.validators.forEach(v => {
-			this.network.receive(v.name).forEach(packet => {
-				v.parseMsg(packet.msg);
-			});
+
+	doRandomMessage() {
+		let candidates = this.validators.map((_, i) => i);
+		const from = this.validators[this.popRandomElement(candidates)];
+		const to = this.validators[this.popRandomElement(candidates)];
+		this.doMessage(from, to);
+	}
+
+	doMessage(from, to) {
+		this.network.send(from.generateMsg(), from.name, to.name);
+		this.network.receive(to.name).forEach(packet => {
+			to.parseMsg(packet.msg);
 		});
+		this.safety[from.name] = from.findSafety(from.getEstimate());
 	}
 
 	consensusAchieved(individualRatio, overallRatio) {
@@ -71,8 +75,7 @@ class Simulator {
 		let unsafeValidators = Math.ceil(this.validatorCount * (1 - overallRatio));
 		for(var i = 0; i < this.validatorCount; i++) {
 			const v = this.validators[i];
-			const e = v.getEstimate();
-			const s = v.findSafety(e);
+			const s = this.safety[v.name];
 
 			if(s >= individualRatio) {
 				safeValidators--;
@@ -94,9 +97,8 @@ class Simulator {
 	}
 
 	simulate() {
-		let consensusAchieved = false;
 		while(this.consensusAchieved(this.requiredSafetyRatio, this.safeValidatorRatio) === false) {
-			this.doRound(this.messagesPerRound);
+			this.doRandomMessage();
 		}
 
 		const decisions = this.validators.reduce((acc, v) => {
@@ -108,12 +110,26 @@ class Simulator {
 				safety
 			}
 			return acc;
-		}, {})
+		}, {});
+		const avgStartingPoint = Math.round(
+			this.validatorInfo
+				.reduce((sum, i) => sum + i.startingPoint, 0)
+				/ this.validatorInfo.length
+		);
+		const avgDecisionPoint = Math.round(
+			Object.keys(decisions)
+				.reduce((sum, i) => sum + decisions[i].estimate, 0)
+				/ Object.keys(decisions).length
+		);
+
+		console.log(avgStartingPoint);
+		console.log(avgDecisionPoint);
 
 		const output = {
 			decisions,
 			initialConfig: this.validatorInfo,
-			log: this.network.getLog()
+			log: this.network.getLog(),
+			majorityFlip: (avgDecisionPoint !== avgStartingPoint)
 		}
 
 		return output;

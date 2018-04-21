@@ -55,5 +55,12 @@ if(args.sim === "random") {
 		args.safety_ratio,
 		args.messages_per_round
 	);
-	console.log(simulator.simulate());
+	const result = simulator.simulate();
+	const output = {
+		intialConfig: result.initialConfig,
+		decisions: result.decisions,
+		majorityFlip: result.majorityFlip,
+		messageLogLength: result.log.length,
+	}
+	console.log(JSON.stringify(output, null, 2));
 }
