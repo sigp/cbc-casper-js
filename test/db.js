@@ -66,4 +66,29 @@ describe('MsgDB hash table storage', function() {
 			'the nested object did not decompress correctly'
 		)
 	});
+	
+	it('should store msgs with hashes as justifications', function() { 
+		let db = new MsgDB();
+
+		const msg1 = {
+			sender: 'Brian',
+			estimate: 1,
+			justification: []
+		};
+		const hash1 = db.store(msg1);
+		const msg2 = {
+			sender: 'Jane',
+			estimate: 1,
+			justification: [
+				hash1
+			]
+		};
+		const hash2 = db.store(msg2);
+	
+		let retrieved = db.retrieve(hash2);
+		assert(
+			retrieved.justification[0] === hash1,
+			'msg2 should have the correct justification'
+		)
+	});
 });

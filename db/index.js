@@ -15,9 +15,7 @@ class MsgDB {
 		let ourMsg = Object.assign({}, msg);
 		// Recurse into justifications if they are objects (not hashes)
 		ourMsg.justification = msg.justification.map(j => {
-			if(typeof j === "object") {
-				return this.store(j)
-			}
+			return typeof j === "object" ? this.store(j) : j;
 		});
 		// Hash the msg and add to table
 		const hash = hashObj(ourMsg);
@@ -26,12 +24,16 @@ class MsgDB {
 	}
 
 	retrieve(hash) {
-		return this.ht[hash]
+		const msg = this.ht[hash];
+		return msg ? Object.assign({}, msg) : msg
 	}
 
 	decompress(hash) {
 		// Pull msg from table
-		let msg = Object.assign({}, this.retrieve(hash));
+		let msg = this.retrieve(hash);
+		if(msg === undefined) {
+			throw new Error(`Cannot decompress unknown hash: ${hash}`);
+		}
 		// Recurse into justifications (they will be hashes)
 		msg.justification = msg.justification.map(j => {
 			return this.decompress(j);
