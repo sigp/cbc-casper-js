@@ -118,20 +118,13 @@ class BinaryValidator extends Validator {
 	 * If only half of validators are safe, this will return 0.5.
 	 */
 	findSafety(estimate) {
-		const memoizedSafety = this.getCurrentMessageStateSafety(estimate);
-		if(memoizedSafety !== undefined) {
-			return memoizedSafety;
-		}
-		else {
-			const unattackable = this.findSafeValidators(estimate)
-			const safeWeight = unattackable.reduce((acc, name) => {
-				return acc + this.getWeight(name);
-			}, 0);
-			const totalWeight = this.getWeightSum();
-			const safety = safeWeight / totalWeight;
-			this.setCurrentMessageStateSafety(estimate, safety);
-			return safety;
-		}
+		const unattackable = this.findSafeValidators(estimate)
+		const safeWeight = unattackable.reduce((acc, name) => {
+			return acc + this.getWeight(name);
+		}, 0);
+		const totalWeight = this.getWeightSum();
+		const safety = safeWeight / totalWeight;
+		return safety;
 	}
 
 	getEstimateFromMsgs(msgs) {
