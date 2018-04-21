@@ -11,15 +11,16 @@ class ByzantineError extends Error {
 
 
 class Validator {
-	constructor(name, weight, startingPoint) {
+	constructor(name, weight, startingPoint, db) {
 		this.name = name;
 		this.startingPoint = startingPoint;
 		this.lastMsgHashes = {};
 		this.msgSequences = {};
 		this.isByzantine = {};
 		this.weights = {};
+		this.trustedMsgHashes = {}
 		this.msgStateSafety = {};
-		this.db = new MsgDB();
+		this.db = db ? db : new MsgDB();
 
 		// Create an initial msg, store it and save it as our latest msg.
 		this.setLatestMsg(
@@ -83,6 +84,14 @@ class Validator {
 		}, 0);
 	}
 
+	getJustification(msgHash) {
+		return this.retrieveMsg(msgHash).justification;
+	}
+	
+	getSender(msgHash) {
+		return this.retrieveMsg(msgHash).sender;
+	}
+
 	flagAsByzantine(sender) {
 		this.isByzantine[sender] = true;
 	}
@@ -95,12 +104,20 @@ class Validator {
 		this.msgSequences[who] = seqs;
 	}
 
-	isMsgKnown(hash) {
-		return this.db.exists(hash);
+	setMsgHashTrusted(hash) {
+		this.trustedMsgHashes[hash] = true;
+	}
+
+	isMsgHashTrusted(hash) {
+		return (hash in this.trustedMsgHashes);
 	}
 
 	getLatestMsgHash(who) {
 		return this.lastMsgHashes[who];
+	}
+	
+	getLatestMsgHashes() {
+		return Object.values(this.lastMsgHashes);
 	}
 
 	setLatestMsg(who, hash) {
@@ -113,55 +130,11 @@ class Validator {
 	 * messages)
 	 */
 	getLatestMsgs() {
-		return Object.values(this.lastMsgHashes).map(h => this.retrieveMsg(h))
+		return Object.values(this.lastMsgHashes);
 	}
 
 	getLatestMsgsDecompressed() {
 		return Object.values(this.lastMsgHashes).map(h => this.decompressHash(h))
-	}
-
-	/*
-	 * We use this hash to determine if our message set has changed.
-	 * It should only change if we have new information in the latest
-	 * messages of other validators.
-	 */
-	getMessageStateHash() {
-		return hashObj(this.lastMsgHashes);
-	}
-
-	getCurrentMessageStateSafety(estimate) {
-		return this.getMessageStateSafety(
-			this.getMessageStateHash(),
-			estimate
-		);
-	}
-	
-	setCurrentMessageStateSafety(estimate, safety) {
-		return this.setMessageStateSafety(
-			this.getMessageStateHash(),
-			estimate,
-			safety
-		);
-	}
-	
-	setMessageStateSafety(stateHash, estimate, safety) {
-		if(this.getMessageStateSafety(stateHash, estimate) !== undefined)  {
-			throw new Error('Cannot set a new safety for a known state hash.')
-		}
-		if(stateHash === undefined)  {
-			throw new Error('stateHash cannot be undefined.')
-		}
-		if(!(stateHash in this.msgStateSafety)) {
-			this.msgStateSafety[stateHash] = {};
-		}
-		this.msgStateSafety[stateHash][estimate] = safety;
-	}
-	getMessageStateSafety(stateHash, estimate) {
-		if(stateHash in this.msgStateSafety) {
-			return this.msgStateSafety[stateHash][estimate]
-		} else {
-			return undefined;
-		}
 	}
 
 	getEstimate() {
@@ -171,28 +144,26 @@ class Validator {
 	}
 
 	generateMsg() {
-		let msg = {};
+		let hash = this.getLatestMsgHash(this.name);
 
-		const latestMsgs = this.getLatestMsgsDecompressed();
-		// If there is only one latest message and it's ours, send it.
-		if(latestMsgs.length === 1 && latestMsgs[0].sender === this.name) {
-			return latestMsgs[0];
-		}
-		// If we have messages from others, build an estimate
-		else {
-			msg = {
+		const latestMsgs = this.getLatestMsgs();
+		if(latestMsgs.length > 1) {
+			hash = this.storeMsg({
 				sender: this.name,
 				estimate: this.getEstimateFromMsgs(latestMsgs),
-				justification: latestMsgs,
-			}
+				justification: this.getLatestMsgHashes()
+			});
 		}
-		this.verifyAndStore(msg);
-		return msg;
+		this.verifyMsgHash(hash);
+		return hash;
 	}
 
-	parseMsg(msg) {
+	parseMsg(msgHash) {
+		if(typeof msgHash !== "string") {
+			throw new Error(`parseMsg expects "string" (hash), not "${typeof msgHash}"`);
+		}
 		try {
-			this.verifyAndStore(msg);
+			this.verifyMsgHashLazyDeep(msgHash);
 		}	
 		catch(e) {
 			if(e.name !== "ByzantineError") {
@@ -202,33 +173,30 @@ class Validator {
 		}
 	}
 
-	verifyAndStore(msg) {
-		// We create a local db here so we don't pollute our global db
-		// with invalid msgs.
-		const localDb = new MsgDB();
-		const msgHash = localDb.store(msg);
-		const stateHash = this.getMessageStateHash();
+	/*
+	 * Deep because it will recurse into justifications and validate them,
+	 * lazy because it will stop recursing as soon as it finds a trusted
+	 * message.
+	 */
+	verifyMsgHashLazyDeep(msgHash) {
+		var depth = 0;
 
 		const recurse = function(hash) {
-			// If we don't already have this message, then attempt to verify
-			// and store it if it passes.
-			if(!this.isMsgKnown(hash)){
-				const msgComp = localDb.retrieve(hash);
-				const msgDecomp = localDb.decompress(hash);
-				// Recurse into justifications
-				msgComp.justification.forEach(h => recurse(h));
-				// Verify message (will throw if not valid)
-				const isLatest = this.verifyMsg(msgDecomp);
-				// Move the msg from the local db into our db
-				this.storeMsg(msgDecomp);
-				// Update our latest message if necessary
-				if (isLatest) {
-					this.setLatestMsg(msgComp.sender, hash);
-				}
+			depth++;
+			if(++depth >= 100) {
+				throw new Error("Reached max depth.")
+			}
+			else if(this.isMsgHashTrusted(hash)){
+				return
+			} 
+			else {
+				const justification = this.getJustification(hash);
+				justification.forEach(h => recurse(h));
+				this.verifyMsgHash(hash);
 			}
 		}.bind(this);
+
 		recurse(msgHash);
-		return msgHash;
 	}
 	
 	/*
@@ -249,58 +217,87 @@ class Validator {
 	 *	For convenience, return `true` if this message is the latest
 	 *	message for a particular sender.
 	 */
-	verifyMsg(msg) {
-		// We create a local db here so we don't pollute our global db
-		// with invalid msgs.
-		const db = new MsgDB();
-		const msgHash = db.store(msg);
-
-		/*
-		 * Verify the estimate in this message. Only check the immediate
-		 * justifications (i.e., don't recurse).
-		 */
-		if(msg.justification.length > 0) {
-			const estimate = this.getEstimateFromMsgs(msg.justification);
-			if(estimate !== msg.estimate) {
-				this.flagAsByzantine(msg.sender);
-				throw new ByzantineError("The estimate was incorrect.");
-			}
-		}
+	verifyMsgHash(msgHash) {
+		const msg = this.retrieveMsg(msgHash);
+		const justification = msg.justification;
+		const estimate = msg.estimate;
+		const sender = msg.sender;
+		let isLatestMsg = false;
 		
-		/*
-		 * Inspect the immediate justification messages
-		 * and detect wether or not there are multiple messages
-		 * from the same sender. If so, flag the sender of this
-		 * message as Byzantine.
-		 */
-		const senders = {};
-		let hasDupes = false;
-		msg.justification.forEach(j => {
-			hasDupes = (hasDupes || senders[j.sender]);
-			senders[j.sender] = true;
-		});
-		if(hasDupes) { 
-			this.flagAsByzantine(msg.sender);
+		// Check that the estimate given matches the estimate
+		// we would generate from the same justification
+		const estimateValid = this.justificationEstimateIsValid(
+			justification,
+			estimate
+		)
+		if(!estimateValid) {
+			this.flagAsByzantine(sender);
+			throw new ByzantineError("The estimate was incorrect.");
+		}
+
+		// Check that the same sender was not referenced twice in the same 
+		// set of justifications.
+		const hasDupes = this.justificationHasDuplicates(justification);
+		if(hasDupes) {
+			this.flagAsByzantine(sender);
 			throw new ByzantineError(
 				"There were multiple messages from the same sender in " +
 				"the justification of the message."
 			);
 		}
 
-		/*
-		 * For each sender, build a linear history of messages, as defined
-		 * by only this message.
-		 */
+		// Get a linear history of the sender from this message
+		const seqs = this.getMsgHashSequenceForSender(msgHash, sender);
+		const knownSeqs = this.getMsgSequence(msgHash, sender);
+		const isLatest = (seqs.length > knownSeqs.length);
+		const equivocation = this.findEquivocation(knownSeqs, seqs);
+		if(equivocation) {
+			this.flagAsByzantine(sender);
+			throw new ByzantineError(equivocation);
+		} 
+
+		// If we reached this point, the message is valid.
+		// Do some housekeeping.
+		if(isLatest) {
+			this.setLatestMsg(sender, msgHash);
+			this.setMsgSequence(sender, seqs);
+		}
+		this.setMsgHashTrusted(msgHash);
+	}
+
+	justificationEstimateIsValid(justification, estimate) {
+		if(justification.length > 0) {
+			return estimate === this.getEstimateFromMsgs(
+				justification.map(j => this.retrieveMsg(j))
+			);
+		} 
+		else {
+			// An estimate is always valid with no justifications
+			return true;
+		}
+	}
+
+	justificationHasDuplicates(justification)	 {
+		const senders = {};
+		return justification.reduce((hasDupes, j) => {
+			const sender = this.getSender(j);
+			hasDupes = (hasDupes || senders[sender]);
+			senders[sender] = true;
+			return hasDupes;
+		}, false);
+	}
+
+	getMsgHashSequenceForSender(msgHash, who) {
 		const seqs = [];
 		const makeSeqs = function(hash, sender) {
 			seqs.unshift(hash);
-			const nextDep = db.retrieve(hash).justification.find(h => {
-				return db.retrieve(h).sender === sender;
+			const nextDep = this.retrieveMsg(hash).justification.find(h => {
+				return this.retrieveMsg(h).sender === sender;
 			});
 			if(nextDep) { 
 				makeSeqs(nextDep, sender); 
 			}
-			else if (nextDep === undefined && db.retrieve(hash).justification.length > 0) {
+			else if (nextDep === undefined && this.retrieveMsg(hash).justification.length > 0) {
 				this.flagAsByzantine(msg.sender);
 				throw new ByzantineError(
 					"The sender omitted their previous latest message  " +
@@ -308,30 +305,24 @@ class Validator {
 				)
 			}
 		}.bind(this);
-		makeSeqs(msgHash, msg.sender);
+		makeSeqs(msgHash, who);
+		return seqs;
+	}
 
-		/*
-		 * Compare the history generated by this new message and ensure
-		 * that it does not conflict with our previously known history
-		 * from this sender.
-		 */
-		const knownSeqs = this.getMsgSequence(msg.sender);
+	// Returns an error if there was equivocation.
+	findEquivocation(knownSeqs, seqs) {
 		// If we don't have a message sequence for this validator,
 		// accept this sequence as the truth.
 		if(knownSeqs.length === 0) {
-			this.setMsgSequence(msg.sender, seqs);
-			return true;	// Return true because this is the lastest message
+			return false;
 		}
 		const index = knownSeqs.indexOf(seqs[0]);
 		// If the very first message from a sender in this message history
 		// is not known to us, then it means they have invented two different
 		// initial messages and are therefore bzyantine.
 		if(index < 0) { 
-			this.flagAsByzantine(msg.sender);
-			throw new ByzantineError(
-				"The initial message referenced by the sender was not the " +
+			return "The initial message referenced by the sender was not the " +
 				"previously known initial message."
-			); 
 		}
 		// Start checking the two histories for a fork (and also extend our
 		// currently known sequence if there are no forks)
@@ -342,12 +333,9 @@ class Validator {
 				knownSeqs.push(seqs[i]);
 			}
 			else if(seqs[i] !== knownSeqs[knownSeqsIndex]) {
-				this.flagAsByzantine(msg.sender);
-				throw new ByzantineError("There was a fork in the message history.")
+				return "There was a fork in the message history."
 			}
 		}
-
-		return isLatestMsg;
 	}
 }
 module.exports = Validator;
