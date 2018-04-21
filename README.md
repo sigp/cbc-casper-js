@@ -66,6 +66,13 @@ are randomised:
    `0` or `1`.
  - The senders and recipients of messages for each round. (The number of messages
    sent per round is specified by the `-m` flag.)
+
+In this binary simulation, there is no concept of "rounds". I.e., validators
+will not wait for some minimum threshold of votes before they issue a new
+estimate to the network. This means that it is possible for all validators to
+reach consensus on a value which was not average of all validator starting
+points. E.g., there exists a pattern of messages so that validators with
+starting points `(0, 1, 1)` can come to consensus on the `0` value.
    
 The random sim will output a JSON object to console with the following
 properties:
@@ -140,11 +147,7 @@ Any validator which defies these rules will be flagged as Byzantine.
   - [x] Byzantine Fault Detection
   - [x] Safety Oracle
   - [x] Command-line simulator
-- [ ] Integer Consensus
-  - [x] Estimator
-  - [x] Byzantine Fault Detection
-  - [ ] Safety Oracle
-  - [ ] Command-line simulator
+  - [x] Shared database for faster sims
 - [ ] Blockchain Consensus
 - [ ] Full code coverage for tests
 - [ ] Linting
